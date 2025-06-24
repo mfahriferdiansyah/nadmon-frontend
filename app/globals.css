@@ -1,0 +1,448 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .transform-style-preserve-3d {
+    transform-style: preserve-3d;
+  }
+
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+
+  /* Gaming Grid Pattern */
+  .bg-grid-pattern {
+    background-image: linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+
+  /* Significantly increased minimum card sizes for better readability */
+  .pokemon-card-sm {
+    width: 180px;
+    height: 252px;
+    min-width: 180px;
+    min-height: 252px;
+  }
+
+  .pokemon-card-md {
+    width: 220px;
+    height: 308px;
+    min-width: 220px;
+    min-height: 308px;
+  }
+
+  .pokemon-card-lg {
+    width: 260px;
+    height: 364px;
+    min-width: 260px;
+    min-height: 364px;
+  }
+
+  .pokemon-card-xl {
+    width: 300px;
+    height: 420px;
+    min-width: 300px;
+    min-height: 420px;
+  }
+
+  /* Gaming-enhanced animations */
+  .animate-fade-in-up {
+    animation: fadeInUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    opacity: 0;
+    transform: translate3d(0, 30px, 0);
+    will-change: transform, opacity;
+  }
+
+  .animate-slide-in-from-bottom {
+    animation: slideInFromBottom 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    opacity: 0;
+    transform: translate3d(0, 80px, 0) scale3d(0.8, 0.8, 1);
+    will-change: transform, opacity;
+  }
+
+  .animate-pack-shake {
+    animation: packShake 0.6s ease-in-out;
+    will-change: transform;
+  }
+
+  .animate-pack-top-rip {
+    animation: packTopRip 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    will-change: transform, opacity;
+  }
+
+  .animate-card-pull-out {
+    animation: cardPullOut 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+
+  .animate-card-return {
+    animation: cardReturn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    opacity: 0;
+    transform: translate3d(-200px, -100px, 0) scale3d(0.8, 0.8, 1);
+    will-change: transform, opacity;
+  }
+
+  .animate-sparkle {
+    animation: sparkle 2s ease-in-out infinite;
+    will-change: transform, opacity;
+  }
+
+  .animate-card-pull-vertical {
+    animation: cardPullVertical 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+
+  .animate-card-enter-from-top {
+    animation: cardEnterFromTop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    opacity: 0;
+    transform: translate3d(0, -500px, 0) scale3d(0.9, 0.9, 1);
+    will-change: transform, opacity;
+  }
+
+  /* Enhanced throw animation with gaming flair */
+  .animate-card-throw-smooth {
+    animation: cardThrowGaming 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    will-change: transform, opacity;
+  }
+
+  /* Gaming-style glow animations */
+  .animate-rare-glow {
+    animation: rareGlow 3s ease-in-out infinite;
+    will-change: box-shadow;
+  }
+
+  .animate-epic-glow {
+    animation: epicGlow 3s ease-in-out infinite;
+    will-change: box-shadow;
+  }
+
+  .animate-legendary-glow {
+    animation: legendaryGlow 3s ease-in-out infinite;
+    will-change: box-shadow;
+  }
+
+  /* Enhanced orbit animations */
+  .animate-glow-orbit {
+    animation: glowOrbit 3s linear infinite;
+    will-change: transform;
+  }
+
+  .animate-intense-glow-orbit {
+    animation: intenseGlowOrbit 2.5s linear infinite;
+    will-change: transform;
+  }
+
+  /* Performance optimizations */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  /* Disable animations on low-end devices */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-card-throw-smooth {
+      animation: cardThrowReduced 0.3s ease-out forwards;
+    }
+
+    .animate-rare-glow,
+    .animate-epic-glow,
+    .animate-legendary-glow,
+    .animate-glow-orbit,
+    .animate-intense-glow-orbit {
+      animation: none;
+    }
+  }
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes slideInFromBottom {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 80px, 0) scale3d(0.8, 0.8, 1);
+  }
+  60% {
+    opacity: 1;
+    transform: translate3d(0, -10px, 0) scale3d(1.05, 1.05, 1);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+  }
+}
+
+@keyframes packShake {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotateZ(0deg);
+  }
+  15% {
+    transform: translate3d(-5px, -3px, 0) rotateZ(-2deg);
+  }
+  30% {
+    transform: translate3d(5px, -2px, 0) rotateZ(2deg);
+  }
+  45% {
+    transform: translate3d(-3px, 3px, 0) rotateZ(-1deg);
+  }
+  60% {
+    transform: translate3d(3px, -3px, 0) rotateZ(1deg);
+  }
+  75% {
+    transform: translate3d(-2px, 2px, 0) rotateZ(-0.5deg);
+  }
+}
+
+@keyframes packTopRip {
+  0% {
+    transform: translate3d(0, 0, 0) rotateZ(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(-200px, -150px, 0) rotateZ(-35deg) scale3d(0.7, 0.7, 1);
+    opacity: 0;
+  }
+}
+
+@keyframes cardPullOut {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotateZ(0deg) scale3d(1, 1, 1);
+  }
+  30% {
+    opacity: 1;
+    transform: translate3d(0, -30px, 0) rotateZ(2deg) scale3d(1.05, 1.05, 1);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, -500px, 0) rotateZ(0deg) scale3d(1, 1, 1);
+  }
+}
+
+@keyframes cardReturn {
+  0% {
+    opacity: 0;
+    transform: translate3d(-250px, -150px, 0) scale3d(0.7, 0.7, 1) rotateZ(-15deg);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translate3d(0, -30px, 0) scale3d(1.15, 1.15, 1) rotateZ(3deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale3d(1, 1, 1) rotateZ(0deg);
+  }
+}
+
+@keyframes sparkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale3d(0.3, 0.3, 1) rotateZ(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale3d(1.2, 1.2, 1) rotateZ(180deg);
+  }
+}
+
+@keyframes cardPullVertical {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotateZ(0deg) scale3d(1, 1, 1);
+  }
+  25% {
+    opacity: 1;
+    transform: translate3d(0, -20px, 0) rotateZ(2deg) scale3d(1.05, 1.05, 1);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, -600px, 0) rotateZ(0deg) scale3d(1, 1, 1);
+  }
+}
+
+@keyframes cardEnterFromTop {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -600px, 0) scale3d(0.8, 0.8, 1) rotateZ(0deg);
+  }
+  60% {
+    opacity: 0.9;
+    transform: translate3d(0, -15px, 0) scale3d(1.1, 1.1, 1) rotateZ(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale3d(1, 1, 1) rotateZ(0deg);
+  }
+}
+
+/* Enhanced gaming throw animation */
+@keyframes cardThrowGaming {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale3d(1, 1, 1) rotateZ(0deg);
+  }
+  30% {
+    opacity: 0.9;
+    transform: translate3d(150px, -40px, 0) scale3d(0.95, 0.95, 1) rotateZ(15deg);
+  }
+  60% {
+    opacity: 0.7;
+    transform: translate3d(350px, -80px, 0) scale3d(0.85, 0.85, 1) rotateZ(30deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(600px, 0, 0) scale3d(0.7, 0.7, 1) rotateZ(45deg);
+  }
+}
+
+/* Reduced motion version for accessibility */
+@keyframes cardThrowReduced {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(150px, 0, 0) scale3d(0.8, 0.8, 1);
+  }
+}
+
+/* Enhanced gaming glow effects */
+@keyframes rareGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px rgba(59, 130, 246, 0.3), 0 0 60px rgba(59, 130, 246, 0.2), 0
+      0 80px rgba(59, 130, 246, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.8), 0 0 60px rgba(59, 130, 246, 0.6), 0 0 90px rgba(59, 130, 246, 0.4), 0
+      0 120px rgba(59, 130, 246, 0.2);
+  }
+}
+
+@keyframes epicGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 25px rgba(147, 51, 234, 0.5), 0 0 50px rgba(147, 51, 234, 0.4), 0 0 75px rgba(147, 51, 234, 0.3), 0
+      0 100px rgba(147, 51, 234, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(147, 51, 234, 0.9), 0 0 80px rgba(147, 51, 234, 0.7), 0 0 120px rgba(147, 51, 234, 0.5), 0
+      0 160px rgba(147, 51, 234, 0.3);
+  }
+}
+
+@keyframes legendaryGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 30px rgba(234, 179, 8, 0.6), 0 0 60px rgba(234, 179, 8, 0.5), 0 0 90px rgba(234, 179, 8, 0.4), 0 0
+      120px rgba(234, 179, 8, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 50px rgba(234, 179, 8, 1), 0 0 100px rgba(234, 179, 8, 0.8), 0 0 150px rgba(234, 179, 8, 0.6), 0 0
+      200px rgba(234, 179, 8, 0.4);
+  }
+}
+
+@keyframes glowOrbit {
+  0% {
+    transform: rotate(0deg) translateX(160px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(160px) rotate(-360deg);
+  }
+}
+
+@keyframes intenseGlowOrbit {
+  0% {
+    transform: rotate(0deg) translateX(180px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(180px) rotate(-360deg);
+  }
+}
