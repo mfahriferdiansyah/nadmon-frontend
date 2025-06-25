@@ -35,8 +35,17 @@ export function CardComponent({
   isThrown,
   isInFinalRow,
   onCardClick,
+  onThrowComplete,
+  onFocusComplete,
+  onFlipComplete,
+  autoThrowAfterFlip,
   cards = [],
   size = "md",
+  isAnimating = false,
+  isAutoPlaying = false,
+  isFocusAnimating = false,
+  isFlipAnimating = false,
+  isClickCooldown = false,
 }: CardComponentProps & { size?: "sm" | "md" | "lg" | "xl" }) {
   const isActive = index === currentCardIndex
   const isBelow = index > currentCardIndex
@@ -55,6 +64,7 @@ export function CardComponent({
     }
 
     if (isBelow) {
+      // Fan effect for cards behind current card
       const offset = index - currentCardIndex
       const fanRotation = offset * 8
       const fanOffsetX = offset * 15
@@ -62,7 +72,30 @@ export function CardComponent({
       return `translate3d(${fanOffsetX}px, ${fanOffsetY}px, 0px) rotateZ(${fanRotation}deg) scale3d(0.96, 0.96, 1)`
     }
 
-    return `translate3d(0px, 0px, 0px) rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale3d(1, 1, 1)`
+    // Cards above current card (not yet reached) - CHAOTIC stacking like real messy cards!
+    const stackOffset = currentCardIndex - index
+    
+    // Much more chaotic rotations - different patterns for visual chaos
+    const rotationBase = (index % 7 - 3) * 4 // Base rotation: -12° to +12°
+    const rotationChaos = (index * 17) % 11 - 5 // Additional chaos: -5° to +5°
+    const totalRotation = rotationBase + rotationChaos
+    
+    // Chaotic horizontal offsets - much larger and more varied
+    const baseOffsetX = (index % 5 - 2) * 8 // -16px to +16px
+    const chaoticOffsetX = ((index * 23) % 13 - 6) * 2 // Additional -12px to +12px
+    const totalOffsetX = baseOffsetX + chaoticOffsetX
+    
+    // Chaotic vertical offsets - cards scattered vertically
+    const baseOffsetY = stackOffset * 2 // Base depth offset
+    const chaoticOffsetY = ((index * 31) % 9 - 4) * 3 // -12px to +12px chaos
+    const totalOffsetY = baseOffsetY + chaoticOffsetY
+    
+    // More noticeable scale variations
+    const baseScale = 1 - (stackOffset * 0.01) // Depth scaling
+    const chaoticScale = ((index * 41) % 7 - 3) * 0.008 // -0.024 to +0.024 chaos
+    const totalScale = Math.max(0.94, Math.min(1.06, baseScale + chaoticScale)) // Clamp between 0.94-1.06
+    
+    return `translate3d(${totalOffsetX}px, ${totalOffsetY}px, 0px) rotateZ(${totalRotation}deg) scale3d(${totalScale}, ${totalScale}, 1)`
   }
 
   const getZIndex = () => {
@@ -201,10 +234,35 @@ export function CardComponent({
     return layout.nameText
   }
 
+  const handleAnimationEnd = (e: React.AnimationEvent) => {
+    if (e.animationName === 'cardThrowGaming' && onThrowComplete) {
+      onThrowComplete()
+    }
+  }
+
+  const handleTransitionEnd = (e: React.TransitionEvent) => {
+    // Only handle the transform transition for the flip animation
+    if (e.propertyName === 'transform' && onFlipComplete && isFlipAnimating) {
+      onFlipComplete()
+      
+      // If auto-playing, trigger the throw after flip
+      if (isAutoPlaying && autoThrowAfterFlip) {
+        autoThrowAfterFlip()
+      }
+    }
+  }
+
+  const handleContainerTransitionEnd = (e: React.TransitionEvent) => {
+    // Handle focus animation completion when card moves from chaotic to neat position
+    if (e.propertyName === 'transform' && onFocusComplete && isFocusAnimating && isActive) {
+      onFocusComplete()
+    }
+  }
+
   return (
     <div
       className={`perspective-1000 ${cardSizeClass} ${isInFinalRow ? "relative" : "absolute inset-0"} ${
-        isActive && !isInFinalRow ? "cursor-pointer" : ""
+        isActive && !isInFinalRow && !isAnimating && !isAutoPlaying && !isFocusAnimating && !isFlipAnimating && !isClickCooldown ? "cursor-pointer" : ""
       } ${isThrown && !isInFinalRow ? "animate-card-throw-smooth" : ""} gpu-accelerated bg-transparent isolation-auto`}
       style={{
         ...(isInFinalRow
@@ -222,6 +280,8 @@ export function CardComponent({
             }),
       }}
       onClick={isActive && !isInFinalRow ? onCardClick : undefined}
+      onAnimationEnd={handleAnimationEnd}
+      onTransitionEnd={handleContainerTransitionEnd}
     >
       {/* Optimized orbiting glow effects - disabled when throwing */}
       {shouldShowOrbitingGlow() && (
@@ -254,6 +314,7 @@ export function CardComponent({
           transition: "transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
           willChange: "transform",
         }}
+        onTransitionEnd={handleTransitionEnd}
       >
         {/* Card Back */}
         <div className="absolute inset-0 w-full h-full backface-hidden">

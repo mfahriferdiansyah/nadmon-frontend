@@ -37,6 +37,15 @@ export interface CardComponentProps {
   isThrown: boolean
   isInFinalRow: boolean
   onCardClick: () => void
+  onThrowComplete?: () => void
+  onFocusComplete?: () => void
+  onFlipComplete?: () => void
+  autoThrowAfterFlip?: () => void
+  isAnimating?: boolean
+  isAutoPlaying?: boolean
+  isFocusAnimating?: boolean
+  isFlipAnimating?: boolean
+  isClickCooldown?: boolean
   cards?: PokemonCard[]
 }
 

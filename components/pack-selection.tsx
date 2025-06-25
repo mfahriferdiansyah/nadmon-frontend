@@ -15,9 +15,11 @@ export function PackSelection({ onPackSelect, isOpening }: PackSelectionProps) {
     <div className="flex flex-col items-center space-y-6">
       {/* Pack Selection Title */}
       <div className="text-center mb-4">
-        <h2 className="text-2xl md:text-3xl font-black text-white mb-2 tracking-wider">CHOOSE YOUR PACK</h2>
+        <h2 className="text-2xl md:text-3xl font-black text-white mb-2 tracking-wider">
+        {/* CHOOSE YOUR PACK */}
+        </h2>
         <p className="text-gray-300 text-sm md:text-base font-semibold">
-          Each pack contains different elemental powers
+          {/* Each pack contains different elemental powers */}
         </p>
       </div>
 
