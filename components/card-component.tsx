@@ -76,8 +76,8 @@ export function CardComponent({
     const stackOffset = currentCardIndex - index
     
     // Much more chaotic rotations - different patterns for visual chaos
-    const rotationBase = (index % 7 - 3) * 4 // Base rotation: -12° to +12°
-    const rotationChaos = (index * 17) % 11 - 5 // Additional chaos: -5° to +5°
+    const rotationBase = (index % 8 - 2) * 4 // Base rotation: -8° to +20° (favors right)
+    const rotationChaos = (index * 17) % 13 - 4 // Additional chaos: -4° to +8° (favors right)
     const totalRotation = rotationBase + rotationChaos
     
     // Chaotic horizontal offsets - much larger and more varied
