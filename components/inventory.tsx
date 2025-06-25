@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Search, Filter, Star, Plus, Minus, Zap, Package } from "lucide-react"
-import { CardComponent } from "@/components/card-component"
+import { MonsterCard } from "@/components/card-component"
 import type { PokemonCard } from "@/types/card"
 
 const CARDS_PER_PAGE = 25
@@ -90,18 +90,11 @@ export function Inventory({ collection, equippedCards, onEquipCard, onUnequipCar
                   {equippedCards[index] ? (
                     <div className="relative">
                       <div className="relative w-full flex justify-center">
-                        <div className="pokemon-card-lg">
-                          <CardComponent
+                        <MonsterCard
                             card={equippedCards[index]}
-                            index={0}
-                            currentCardIndex={-1}
-                            isFlipped={true}
-                            isThrown={false}
-                            isInFinalRow={true}
-                            onCardClick={() => {}}
-                            size="lg"
-                          />
-                        </div>
+                          variant="equipped"
+                          showActions={false}
+                        />
                       </div>
 
                       <Button
@@ -221,7 +214,7 @@ export function Inventory({ collection, equippedCards, onEquipCard, onUnequipCar
               <div key={`${card.id}-${index}`} className="relative">
                 <div className="w-full flex justify-center">
                   <div
-                    className="pokemon-card-sm cursor-pointer mx-auto"
+                    className="cursor-pointer"
                     onClick={() => {
                       if (isCardEquipped(card.id)) {
                         onUnequipCard(card.id)
@@ -230,15 +223,11 @@ export function Inventory({ collection, equippedCards, onEquipCard, onUnequipCar
                       }
                     }}
                   >
-                    <CardComponent
+                    <MonsterCard
                       card={card}
-                      index={0}
-                      currentCardIndex={-1}
-                      isFlipped={true}
-                      isThrown={false}
-                      isInFinalRow={true}
-                      onCardClick={() => {}}
-                      size="sm"
+                      variant="compact"
+                      isEquipped={isCardEquipped(card.id)}
+                      showActions={false}
                     />
                   </div>
                 </div>

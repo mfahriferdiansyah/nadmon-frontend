@@ -3,104 +3,36 @@
 import type React from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { RotateCcw, Trophy } from "lucide-react"
-import { CardComponent } from "@/components/card-component"
+import { Trophy } from "lucide-react"
 import { PackSelection } from "@/components/pack-selection"
 import type { PackType } from "@/constants/packs"
 import type { PokemonCard } from "@/types/card"
 
 interface ShopProps {
-  isPackOpen: boolean
-  revealedCards: PokemonCard[]
-  selectedPackType: PackType | null
   collection: PokemonCard[]
   onPackSelect: (packType: PackType, event: React.MouseEvent) => void
-  onResetPack: () => void
   isOpening: boolean
 }
 
 export function Shop({
-  isPackOpen,
-  revealedCards,
-  selectedPackType,
   collection,
   onPackSelect,
-  onResetPack,
   isOpening,
 }: ShopProps) {
   return (
     <div className="p-3">
       <div className="max-w-7xl mx-auto">
-        {!isPackOpen ? (
-          <div>
-            {/* Shop Header */}
-            <div className="text-center mb-4">
-              <h1 className="text-3xl md:text-5xl font-black text-white mb-2 tracking-wider">CARD SHOP</h1>
-              <p className="text-gray-300 text-sm md:text-base font-semibold">
-                Purchase booster packs to expand your collection
-              </p>
-            </div>
-
-            <PackSelection onPackSelect={onPackSelect} isOpening={isOpening} />
+        <div>
+          {/* Shop Header */}
+          <div className="text-center mb-4">
+            <h1 className="text-3xl md:text-5xl font-black text-white mb-2 tracking-wider">CARD SHOP</h1>
+            <p className="text-gray-300 text-sm md:text-base font-semibold">
+              Purchase booster packs to expand your collection
+            </p>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {/* Results Header */}
-            <div className="animate-fade-in-up text-center">
-              <div className="relative inline-block mb-3">
-                <h2 className="text-2xl md:text-3xl font-black text-white tracking-wider">PACK RESULTS</h2>
-              </div>
 
-              {/* Pack Type Indicator */}
-              {selectedPackType && (
-                <div className="mb-3">
-                  <div
-                    className={`inline-block bg-gradient-to-r ${selectedPackType.colors.primary} px-3 py-1 border-2 ${selectedPackType.colors.secondary}`}
-                  >
-                    <span className="text-white font-bold text-sm tracking-wider">{selectedPackType.name}</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Cards Display */}
-              <div className="flex flex-wrap justify-center gap-2 px-2">
-                {revealedCards.map((card, index) => (
-                  <div
-                    key={`final-${index}`}
-                    className="animate-slide-in-from-bottom relative"
-                    style={{
-                      animationDelay: `${index * 100}ms`,
-                      animationFillMode: "both",
-                    }}
-                  >
-                    <CardComponent
-                      card={card}
-                      index={index}
-                      currentCardIndex={-1}
-                      isFlipped={true}
-                      isThrown={false}
-                      isInFinalRow={true}
-                      onCardClick={() => {}}
-                      cards={revealedCards}
-                      size="sm"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex justify-center">
-              <Button
-                onClick={onResetPack}
-                className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 border border-gray-500 transition-all duration-300"
-              >
-                <RotateCcw className="w-4 h-4 mr-2" />
-                OPEN ANOTHER PACK
-              </Button>
-            </div>
-          </div>
-        )}
+          <PackSelection onPackSelect={onPackSelect} isOpening={isOpening} />
+        </div>
 
         {/* Collection Stats */}
         {collection.length > 0 && (

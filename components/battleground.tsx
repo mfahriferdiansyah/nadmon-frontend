@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Swords, Shield, Target, Play, RotateCcw } from "lucide-react"
-import { CardComponent } from "@/components/card-component"
+import { MonsterCard } from "@/components/card-component"
 import type { PokemonCard } from "@/types/card"
 
 interface BattlegroundProps {
@@ -191,18 +191,11 @@ export function Battleground({ equippedCards }: BattlegroundProps) {
                   <div key={index} className="relative">
                     {equippedCards[index] ? (
                       <div className="relative w-full flex justify-center">
-                        <div className="pokemon-card-sm">
-                          <CardComponent
+                        <MonsterCard
                             card={equippedCards[index]}
-                            index={0}
-                            currentCardIndex={-1}
-                            isFlipped={true}
-                            isThrown={false}
-                            isInFinalRow={true}
-                            onCardClick={() => {}}
-                            size="sm"
-                          />
-                        </div>
+                          variant="battle"
+                          showActions={false}
+                        />
                       </div>
                     ) : (
                       <div className="w-full flex justify-center">
@@ -241,18 +234,11 @@ export function Battleground({ equippedCards }: BattlegroundProps) {
                 {enemyCards.map((card, index) => (
                   <div key={index} className="relative">
                     <div className="relative w-full flex justify-center">
-                      <div className="pokemon-card-sm">
-                        <CardComponent
+                      <MonsterCard
                           card={card}
-                          index={0}
-                          currentCardIndex={-1}
-                          isFlipped={true}
-                          isThrown={false}
-                          isInFinalRow={true}
-                          onCardClick={() => {}}
-                          size="sm"
-                        />
-                      </div>
+                        variant="battle"
+                        showActions={false}
+                      />
                     </div>
                   </div>
                 ))}

@@ -199,6 +199,16 @@
     will-change: box-shadow;
   }
 
+  /* Hide scrollbars */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari, and Opera */
+  }
+
   /* Enhanced orbit animations */
   .animate-glow-orbit {
     animation: glowOrbit 3s linear infinite;
@@ -229,6 +239,68 @@
     .animate-glow-orbit,
     .animate-intense-glow-orbit {
       animation: none;
+    }
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  /* Glass morphism utilities */
+  .glass-panel {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .glass-dark {
+    backdrop-filter: blur(10px);
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Floating button styles */
+  .floating-button {
+    @apply w-14 h-14 rounded-full backdrop-blur-md bg-white/10 border border-white/20 
+           flex items-center justify-center hover:bg-white/20 transition-all duration-300
+           hover:scale-110 shadow-lg;
+  }
+  
+  /* Custom animations */
+  .bounce-in {
+    animation: bounceIn 0.6s ease-out forwards;
+  }
+  
+  @keyframes bounceIn {
+    0% {
+      opacity: 0;
+      transform: scale(0.3);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+    70% {
+      transform: scale(0.9);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  .fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 }
@@ -360,23 +432,27 @@
   }
 }
 
-/* Enhanced gaming throw animation */
+/* Enhanced gaming throw animation - sliding to top-right corner */
 @keyframes cardThrowGaming {
   0% {
     opacity: 1;
     transform: translate3d(0, 0, 0) scale3d(1, 1, 1) rotateZ(0deg);
   }
-  30% {
-    opacity: 0.9;
-    transform: translate3d(150px, -40px, 0) scale3d(0.95, 0.95, 1) rotateZ(15deg);
+  25% {
+    opacity: 1;
+    transform: translate3d(120px, -60px, 0) scale3d(0.98, 0.98, 1) rotateZ(8deg);
   }
-  60% {
-    opacity: 0.7;
-    transform: translate3d(350px, -80px, 0) scale3d(0.85, 0.85, 1) rotateZ(30deg);
+  50% {
+    opacity: 0.95;
+    transform: translate3d(280px, -140px, 0) scale3d(0.9, 0.9, 1) rotateZ(18deg);
+  }
+  75% {
+    opacity: 0.8;
+    transform: translate3d(450px, -220px, 0) scale3d(0.8, 0.8, 1) rotateZ(25deg);
   }
   100% {
     opacity: 0;
-    transform: translate3d(600px, 0, 0) scale3d(0.7, 0.7, 1) rotateZ(45deg);
+    transform: translate3d(650px, -320px, 0) scale3d(0.6, 0.6, 1) rotateZ(35deg);
   }
 }
 
@@ -388,7 +464,7 @@
   }
   100% {
     opacity: 0;
-    transform: translate3d(150px, 0, 0) scale3d(0.8, 0.8, 1);
+    transform: translate3d(200px, -120px, 0) scale3d(0.8, 0.8, 1);
   }
 }
 

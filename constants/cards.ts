@@ -3,8 +3,8 @@ import type { PokemonCard } from "@/types/card"
 export const MOCK_CARDS: PokemonCard[] = [
   {
     id: 1,
-    name: "Pikachu Thunder Strike",
-    type: "Electric",
+    name: "Pikachu",
+    type: "Neutral",
     rarity: "rare",
     image: "/placeholder.svg?height=200&width=150",
     hp: 60,
@@ -12,24 +12,11 @@ export const MOCK_CARDS: PokemonCard[] = [
     defense: 40,
     speed: 90,
     critical: 15,
-    color: "#FEF08A", // Electric yellow
-  },
-  {
-    id: 2,
-    name: "Charizard Flame Emperor",
-    type: "Fire",
-    rarity: "legendary",
-    image: "/placeholder.svg?height=200&width=150",
-    hp: 120,
-    attack: 100,
-    defense: 78,
-    speed: 100,
-    critical: 25,
-    color: "#FED7AA", // Fire orange
+    color: "#D1D5DB", // Neutral gray
   },
   {
     id: 3,
-    name: "Blastoise Hydro Cannon",
+    name: "Blastoise",
     type: "Water",
     rarity: "epic",
     image: "/placeholder.svg?height=200&width=150",
@@ -42,7 +29,7 @@ export const MOCK_CARDS: PokemonCard[] = [
   },
   {
     id: 4,
-    name: "Venusaur Solar Beam Master",
+    name: "Venusaur",
     type: "Grass",
     rarity: "epic",
     image: "/placeholder.svg?height=200&width=150",
@@ -55,7 +42,7 @@ export const MOCK_CARDS: PokemonCard[] = [
   },
   {
     id: 5,
-    name: "Squirtle Water Gun",
+    name: "Squirtle",
     type: "Water",
     rarity: "common",
     image: "/placeholder.svg?height=200&width=150",
@@ -68,7 +55,7 @@ export const MOCK_CARDS: PokemonCard[] = [
   },
   {
     id: 6,
-    name: "Charmander Ember",
+    name: "Charmander",
     type: "Fire",
     rarity: "common",
     image: "/placeholder.svg?height=200&width=150",
@@ -81,7 +68,7 @@ export const MOCK_CARDS: PokemonCard[] = [
   },
   {
     id: 7,
-    name: "Bulbasaur Vine Whip",
+    name: "Bulbasaur",
     type: "Grass",
     rarity: "common",
     image: "/placeholder.svg?height=200&width=150",
@@ -94,8 +81,8 @@ export const MOCK_CARDS: PokemonCard[] = [
   },
   {
     id: 8,
-    name: "Mewtwo Psychic Destroyer",
-    type: "Psychic",
+    name: "Mewtwo",
+    type: "Neutral",
     rarity: "legendary",
     image: "/placeholder.svg?height=200&width=150",
     hp: 130,
@@ -103,33 +90,7 @@ export const MOCK_CARDS: PokemonCard[] = [
     defense: 90,
     speed: 130,
     critical: 30,
-    color: "#E9D5FF", // Psychic purple
-  },
-  {
-    id: 9,
-    name: "Gyarados Hyper Beam",
-    type: "Water",
-    rarity: "rare",
-    image: "/placeholder.svg?height=200&width=150",
-    hp: 95,
-    attack: 125,
-    defense: 79,
-    speed: 81,
-    critical: 22,
-    color: "#BFDBFE", // Water blue
-  },
-  {
-    id: 10,
-    name: "Dragonite Dragon Rush",
-    type: "Dragon",
-    rarity: "epic",
-    image: "/placeholder.svg?height=200&width=150",
-    hp: 91,
-    attack: 134,
-    defense: 95,
-    speed: 80,
-    critical: 24,
-    color: "#FED7AA", // Dragon orange
+    color: "#D1D5DB", // Neutral gray
   },
 ]
 
@@ -160,7 +121,7 @@ export const RARITY_STYLES = {
   },
 } as const
 
-// Element color themes with patterns
+// Element color themes with patterns - Only 4 types now
 export const ELEMENT_THEMES = {
   Fire: {
     primary: "#FED7AA",
@@ -183,25 +144,11 @@ export const ELEMENT_THEMES = {
     pattern:
       "linear-gradient(60deg, rgba(74, 222, 128, 0.2) 0%, transparent 50%), linear-gradient(-60deg, rgba(22, 163, 74, 0.1) 0%, transparent 50%), radial-gradient(circle at 30% 70%, rgba(74, 222, 128, 0.15) 0%, transparent 50%)",
   },
-  Electric: {
-    primary: "#FEF08A",
-    secondary: "#FACC15",
-    accent: "#CA8A04",
+  Neutral: {
+    primary: "#D1D5DB",
+    secondary: "#9CA3AF",
+    accent: "#6B7280",
     pattern:
-      "linear-gradient(45deg, rgba(250, 204, 21, 0.2) 0%, transparent 30%), linear-gradient(-45deg, rgba(202, 138, 4, 0.1) 0%, transparent 30%), radial-gradient(circle at 60% 40%, rgba(250, 204, 21, 0.15) 0%, transparent 40%)",
-  },
-  Psychic: {
-    primary: "#E9D5FF",
-    secondary: "#C084FC",
-    accent: "#9333EA",
-    pattern:
-      "radial-gradient(ellipse at 30% 20%, rgba(192, 132, 252, 0.2) 0%, transparent 50%), radial-gradient(ellipse at 70% 80%, rgba(147, 51, 234, 0.1) 0%, transparent 50%), linear-gradient(135deg, rgba(192, 132, 252, 0.1) 0%, transparent 60%)",
-  },
-  Dragon: {
-    primary: "#FED7AA",
-    secondary: "#F97316",
-    accent: "#C2410C",
-    pattern:
-      "linear-gradient(120deg, rgba(249, 115, 22, 0.2) 0%, transparent 50%), linear-gradient(-120deg, rgba(194, 65, 12, 0.1) 0%, transparent 50%), radial-gradient(circle at 50% 50%, rgba(249, 115, 22, 0.15) 0%, transparent 60%)",
+      "linear-gradient(45deg, rgba(156, 163, 175, 0.1) 0%, transparent 50%), linear-gradient(-45deg, rgba(107, 114, 128, 0.1) 0%, transparent 50%), radial-gradient(circle at 50% 50%, rgba(156, 163, 175, 0.15) 0%, transparent 50%)",
   },
 } as const
