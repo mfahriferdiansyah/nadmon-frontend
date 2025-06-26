@@ -482,6 +482,34 @@ export function MonsterCard({
   mergeLevel = 0,
   maxMergeLevel = 10
 }: MonsterCardProps) {
+  // Rarity styles that match the main screen
+  const MAIN_SCREEN_RARITY_STYLES = {
+    common: {
+      bg: "bg-gray-500",
+      text: "text-gray-100",
+      border: "border-gray-400",
+      glow: "shadow-gray-400/30"
+    },
+    rare: {
+      bg: "bg-blue-500",
+      text: "text-blue-100",
+      border: "border-blue-400",
+      glow: "shadow-blue-400/30"
+    },
+    epic: {
+      bg: "bg-purple-500",
+      text: "text-purple-100",
+      border: "border-purple-400",
+      glow: "shadow-purple-400/30"
+    },
+    legendary: {
+      bg: "bg-orange-500",
+      text: "text-orange-100",
+      border: "border-orange-400",
+      glow: "shadow-orange-400/30"
+    }
+  }
+
   // Determine card variant based on rarity and equipped status
   const getCardVariant = () => {
     // Always use rarity-based variant, equipped status will be shown with silver glow
@@ -534,267 +562,290 @@ export function MonsterCard({
 
   if (isHorizontal) {
     return (
-      <GlassCard 
-        variant={getCardVariant()}
+      <div 
         className={`relative transition-all duration-300 hover:scale-105 ${
           isEquipped ? "ring-2 ring-gray-300 shadow-lg shadow-gray-300/50" : ""
-        } ${className}`}
+        } ${className} rounded-lg p-2 border ${
+          MAIN_SCREEN_RARITY_STYLES[card.rarity].border
+        } ${
+          // Add transparent colored background based on rarity
+          card.rarity === 'common' ? 'bg-gradient-to-br from-gray-500/20 to-gray-600/10' :
+          card.rarity === 'rare' ? 'bg-gradient-to-br from-blue-500/20 to-blue-600/10' :
+          card.rarity === 'epic' ? 'bg-gradient-to-br from-purple-500/20 to-purple-600/10' :
+          card.rarity === 'legendary' ? 'bg-gradient-to-br from-orange-500/20 to-orange-600/10' :
+          'bg-gradient-to-br from-white/10 to-white/5'
+        } backdrop-blur-sm ${
+          MAIN_SCREEN_RARITY_STYLES[card.rarity].glow
+        }`}
       >
-        <GlassCardContent className="p-2">
-          <div className="flex gap-2">
-            {/* Left Column - Image and Progress */}
-            <div className="flex flex-col gap-1">
-              {/* Image - Square for horizontal layout */}
-              <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
-                {/* Blurred background */}
-                <div className="absolute inset-0">
-                  <Image
-                    src={`/monster/${card.id}.png`}
-                    alt={card.name}
-                    fill
-                    className="object-cover blur-sm scale-110"
-                    onError={(e) => {
-                      e.currentTarget.src = "/placeholder.svg?height=200&width=150"
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-black/20" />
-                </div>
-                
-                {/* Sharp foreground image */}
+        <div className="flex gap-2">
+          {/* Left Column - Image and Progress */}
+          <div className="flex flex-col gap-1">
+            {/* Image - Square for horizontal layout */}
+            <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+              {/* Blurred background */}
+              <div className="absolute inset-0">
                 <Image
                   src={`/monster/${card.id}.png`}
                   alt={card.name}
                   fill
-                  className="object-cover relative z-10"
+                  className="object-cover blur-sm scale-110"
                   onError={(e) => {
                     e.currentTarget.src = "/placeholder.svg?height=200&width=150"
                   }}
                 />
-                
-                {/* Element icon - Top center with circular background */}
-                <div className="absolute top-0.5 left-1/2 transform -translate-x-1/2 z-20">
-                  {getTypeIcon("sm")}
-                </div>
-                
-                {/* Equipped silver inner glow effect */}
-                {isEquipped && (
-                  <div className="absolute inset-0 rounded-lg ring-1 ring-gray-300/60 shadow-inner shadow-gray-300/30" />
-                )}
-                
-                {/* Rarity indicator - bottom right */}
-                <div className="absolute bottom-0.5 right-0.5 z-20">
-                  <div className={`text-xs px-1 py-0.5 rounded ${RARITY_STYLES[card.rarity].bg} ${RARITY_STYLES[card.rarity].text} font-bold`}>
-                    {card.rarity.charAt(0).toUpperCase()}
-                  </div>
-                </div>
-                
-                {/* Rarity Glow Effect */}
-                <div 
-                  className={`absolute inset-0 rounded-lg opacity-20 ${
-                    RARITY_STYLES[card.rarity].bg
-                  }`}
-                />
+                <div className="absolute inset-0 bg-black/20" />
               </div>
-
-              {/* Merge Progress Bar - Below image */}
-              <div className="w-20">
-                <div className="w-full bg-gray-700/50 rounded-full h-1">
-                  <div 
-                    className="bg-gradient-to-r from-blue-400 to-purple-400 h-1 rounded-full transition-all duration-300"
-                    style={{ width: `${(mergeLevel / maxMergeLevel) * 100}%` }}
-                  />
-                </div>
-                <div className="text-xs text-white/60 text-center mt-0.5">
-                  {mergeLevel}/{maxMergeLevel}
-                </div>
+              
+              {/* Sharp foreground image */}
+              <Image
+                src={`/monster/${card.id}.png`}
+                alt={card.name}
+                fill
+                className="object-cover relative z-10"
+                onError={(e) => {
+                  e.currentTarget.src = "/placeholder.svg?height=200&width=150"
+                }}
+              />
+              
+              {/* Element icon - Top left corner with circular background */}
+              <div className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-black/60 flex items-center justify-center z-20">
+                {getTypeIcon("sm")}
               </div>
-            </div>
-
-            {/* Card Info - More compact without progress bar */}
-            <div className="flex-1 min-w-0 flex flex-col justify-between">
-              {/* Name only */}
-              <div>
-                <h4 className="font-semibold text-white text-sm truncate text-center">
-                  {card.name}
-                </h4>
-              </div>
-
-              {/* Horizontal Stats - Better arranged */}
-              <div className="grid grid-cols-2 gap-1.5 text-xs mb-2">
-                <div className="flex items-center justify-between bg-black/20 rounded px-2 py-1">
-                  <Heart className="w-3 h-3 text-red-400" />
-                  <span className="text-white/90 font-medium">{card.hp}</span>
-                </div>
-                <div className="flex items-center justify-between bg-black/20 rounded px-2 py-1">
-                  <Sword className="w-3 h-3 text-orange-400" />
-                  <span className="text-white/90 font-medium">{card.attack}</span>
-                </div>
-                <div className="flex items-center justify-between bg-black/20 rounded px-2 py-1">
-                  <Shield className="w-3 h-3 text-blue-400" />
-                  <span className="text-white/90 font-medium">{card.defense}</span>
-                </div>
-                <div className="flex items-center justify-between bg-black/20 rounded px-2 py-1">
-                  <Target className="w-3 h-3 text-purple-400" />
-                  <span className="text-white/90 font-medium">{card.critical}</span>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              {showActions && (
-                <div className="flex gap-1.5">
-                  <button
-                    onClick={onUnequip}
-                    className="flex-1 px-2 py-1.5 rounded text-xs font-medium transition-all duration-200 bg-gradient-to-r from-red-500/30 to-red-600/30 text-red-200 hover:from-red-500/40 hover:to-red-600/40 hover:scale-105 flex items-center justify-center gap-1 backdrop-blur-sm"
-                  >
-                    <UserX className="w-3 h-3" />
-                    Unequip
-                  </button>
-                  
-                  {onMerge && (
-                    <button
-                      onClick={onMerge}
-                      className="px-2 py-1.5 bg-gradient-to-r from-purple-500/30 to-purple-600/30 text-purple-200 rounded text-xs font-medium hover:from-purple-500/40 hover:to-purple-600/40 hover:scale-105 transition-all duration-200 flex items-center justify-center backdrop-blur-sm"
-                    >
-                      <Merge className="w-3 h-3" />
-                    </button>
-                  )}
-                </div>
+              
+              {/* Equipped silver inner glow effect */}
+              {isEquipped && (
+                <div className="absolute inset-0 rounded-lg ring-1 ring-gray-300/60 shadow-inner shadow-gray-300/30" />
               )}
+              
+              {/* Rarity indicator - bottom right with matching colors */}
+              <div className="absolute bottom-0.5 right-0.5 z-20">
+                <div className={`text-xs px-1 py-0.5 rounded ${MAIN_SCREEN_RARITY_STYLES[card.rarity].bg} ${MAIN_SCREEN_RARITY_STYLES[card.rarity].text} font-bold`}>
+                  {card.rarity.charAt(0).toUpperCase()}
+                </div>
+              </div>
+              
+              {/* Rarity Glow Effect */}
+              <div 
+                className={`absolute inset-0 rounded-lg opacity-20 ${
+                  MAIN_SCREEN_RARITY_STYLES[card.rarity].bg
+                }`}
+              />
             </div>
-          </div>
-        </GlassCardContent>
-      </GlassCard>
-    )
-  }
 
-  return (
-    <GlassCard 
-      variant={getCardVariant()}
-      className={`relative transition-all duration-300 ${
-        isBattle ? "hover:scale-110" : "hover:scale-105"
-      } ${
-        isEquipped ? "ring-2 ring-gray-300 shadow-lg shadow-gray-300/50" : ""
-      } ${className}`}
-    >
-      <GlassCardContent className={isCompact ? "p-3" : "p-4"}>
-        {/* Card Image - Blurred background effect */}
-        <div className={`relative mb-3 rounded-lg overflow-hidden ${
-          isCompact ? "w-full h-28" : "w-full h-36"
-        }`}>
-          {/* Blurred background layer */}
-          <div className="absolute inset-0">
-            <Image
-              src={`/monster/${card.id}.png`}
-              alt={card.name}
-              fill
-              className="object-cover blur-sm scale-110"
-              onError={(e) => {
-                e.currentTarget.src = "/placeholder.svg?height=200&width=150"
-              }}
-            />
-            <div className="absolute inset-0 bg-black/30" />
-          </div>
-          
-          {/* Sharp foreground image */}
-          <Image
-            src={`/monster/${card.id}.png`}
-            alt={card.name}
-            fill
-            className="object-cover relative z-10"
-            onError={(e) => {
-              e.currentTarget.src = "/placeholder.svg?height=200&width=150"
-            }}
-          />
-          
-          {/* Element icon - Top center with circular background */}
-          <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-20">
-            {getTypeIcon(isCompact ? "sm" : "md")}
-          </div>
-          
-          {/* Equipped silver inner glow effect */}
-          {isEquipped && showEquippedBadge && (
-            <div className="absolute inset-0 rounded-lg ring-1 ring-gray-300/60 shadow-inner shadow-gray-300/30 z-15" />
-          )}
-
-          {/* Rarity Glow Effect */}
-          <div 
-            className={`absolute inset-0 rounded-lg opacity-20 ${
-              RARITY_STYLES[card.rarity].bg
-            }`}
-          />
-        </div>
-
-        {/* Card Info */}
-        <div className="space-y-2">
-          <div>
-            <h4 className={`font-semibold text-white ${
-              isCompact ? "text-xs" : "text-sm"
-            } truncate text-center`}>
-              {card.name}
-            </h4>
-            
-            {/* Merge Progress Bar replacing rarity and type */}
-            <div className="mt-2 space-y-1">
-              <div className="w-full bg-gray-700/50 rounded-full h-2">
+            {/* Merge Progress Bar - Below image */}
+            <div className="w-20">
+              <div className="w-full bg-gray-700/50 rounded-full h-1">
                 <div 
-                  className="bg-gradient-to-r from-blue-400 to-purple-400 h-2 rounded-full transition-all duration-300"
+                  className="bg-gradient-to-r from-blue-400 to-purple-400 h-1 rounded-full transition-all duration-300"
                   style={{ width: `${(mergeLevel / maxMergeLevel) * 100}%` }}
                 />
               </div>
-              <div className="text-xs text-white/60 text-center">
+              <div className="text-xs text-white/60 text-center mt-0.5">
                 {mergeLevel}/{maxMergeLevel}
               </div>
             </div>
           </div>
 
-          {/* Stats - Better arranged layout */}
-          {isCompact ? (
-            // Compact stats - 2x2 grid with backgrounds
-            <div className="grid grid-cols-2 gap-1.5 text-xs">
-              <div className="flex items-center justify-between bg-black/20 rounded px-2 py-1">
-                <span>❤️</span>
-                <span className="text-white/90 font-medium">{card.hp}</span>
-              </div>
-              <div className="flex items-center justify-between bg-black/20 rounded px-2 py-1">
-                <span>⚔️</span>
-                <span className="text-white/90 font-medium">{card.attack}</span>
-              </div>
-              <div className="flex items-center justify-between bg-black/20 rounded px-2 py-1">
-                <span>🛡️</span>
-                <span className="text-white/90 font-medium">{card.defense}</span>
-              </div>
-              <div className="flex items-center justify-between bg-black/20 rounded px-2 py-1">
-                <span>🎯</span>
-                <span className="text-white/90 font-medium">{card.critical}</span>
-              </div>
+          {/* Card Info - More compact without progress bar */}
+          <div className="flex-1 min-w-0 flex flex-col justify-between">
+            {/* Name only */}
+            <div>
+              <h4 className="font-semibold text-white text-sm truncate text-center">
+                {card.name}
+              </h4>
             </div>
-          ) : (
-            // Full stats - Better arranged 2x2 grid with backgrounds
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="flex items-center justify-between bg-black/20 rounded-lg px-3 py-2">
+
+            {/* Horizontal Stats - Better arranged */}
+            <div className="grid grid-cols-2 gap-1.5 text-xs mb-2">
+              <div className="flex items-center justify-between bg-black/20 rounded px-2 py-1">
                 <Heart className="w-3 h-3 text-red-400" />
                 <span className="text-white/90 font-medium">{card.hp}</span>
               </div>
-              <div className="flex items-center justify-between bg-black/20 rounded-lg px-3 py-2">
+              <div className="flex items-center justify-between bg-black/20 rounded px-2 py-1">
                 <Sword className="w-3 h-3 text-orange-400" />
                 <span className="text-white/90 font-medium">{card.attack}</span>
               </div>
-              <div className="flex items-center justify-between bg-black/20 rounded-lg px-3 py-2">
+              <div className="flex items-center justify-between bg-black/20 rounded px-2 py-1">
                 <Shield className="w-3 h-3 text-blue-400" />
                 <span className="text-white/90 font-medium">{card.defense}</span>
               </div>
-              <div className="flex items-center justify-between bg-black/20 rounded-lg px-3 py-2">
+              <div className="flex items-center justify-between bg-black/20 rounded px-2 py-1">
                 <Target className="w-3 h-3 text-purple-400" />
                 <span className="text-white/90 font-medium">{card.critical}</span>
               </div>
             </div>
-          )}
+
+            {/* Action Buttons */}
+            {showActions && (
+              <div className="flex gap-1.5">
+                <button
+                  onClick={onUnequip}
+                  className="flex-1 px-2 py-1.5 rounded text-xs font-medium transition-all duration-200 bg-gradient-to-r from-red-500/30 to-red-600/30 text-red-200 hover:from-red-500/40 hover:to-red-600/40 hover:scale-105 flex items-center justify-center gap-1 backdrop-blur-sm"
+                >
+                  <UserX className="w-3 h-3" />
+                  Unequip
+                </button>
+                
+                {onMerge && (
+                  <button
+                    onClick={onMerge}
+                    className="px-2 py-1.5 bg-gradient-to-r from-purple-500/30 to-purple-600/30 text-purple-200 rounded text-xs font-medium hover:from-purple-500/40 hover:to-purple-600/40 hover:scale-105 transition-all duration-200 flex items-center justify-center backdrop-blur-sm"
+                  >
+                    <Merge className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-      </GlassCardContent>
+      </div>
+    )
+  }
+
+  return (
+    <div 
+      className={`relative transition-all duration-300 ${
+        isBattle ? "hover:scale-110" : "hover:scale-105"
+      } ${
+        isEquipped ? "ring-2 ring-gray-300 shadow-lg shadow-gray-300/50" : ""
+      } ${className} rounded-lg p-2 border ${
+        MAIN_SCREEN_RARITY_STYLES[card.rarity].border
+      } ${
+        // Add transparent colored background based on rarity
+        card.rarity === 'common' ? 'bg-gradient-to-br from-gray-500/20 to-gray-600/10' :
+        card.rarity === 'rare' ? 'bg-gradient-to-br from-blue-500/20 to-blue-600/10' :
+        card.rarity === 'epic' ? 'bg-gradient-to-br from-purple-500/20 to-purple-600/10' :
+        card.rarity === 'legendary' ? 'bg-gradient-to-br from-orange-500/20 to-orange-600/10' :
+        'bg-gradient-to-br from-white/10 to-white/5'
+      } backdrop-blur-sm ${
+        MAIN_SCREEN_RARITY_STYLES[card.rarity].glow
+      }`}
+    >
+      {/* Card Image - Blurred background effect */}
+      <div className={`relative mb-3 rounded-lg overflow-hidden ${
+        isCompact ? "w-full h-28" : "w-full h-36"
+      }`}>
+        {/* Blurred background layer */}
+        <div className="absolute inset-0">
+          <Image
+            src={`/monster/${card.id}.png`}
+            alt={card.name}
+            fill
+            className="object-cover blur-sm scale-110"
+            onError={(e) => {
+              e.currentTarget.src = "/placeholder.svg?height=200&width=150"
+            }}
+          />
+          <div className="absolute inset-0 bg-black/30" />
+        </div>
+        
+        {/* Sharp foreground image */}
+        <Image
+          src={`/monster/${card.id}.png`}
+          alt={card.name}
+          fill
+          className="object-cover relative z-10"
+          onError={(e) => {
+            e.currentTarget.src = "/placeholder.svg?height=200&width=150"
+          }}
+        />
+        
+        {/* Element icon - Top left corner with circular background */}
+        <div className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-black/60 flex items-center justify-center z-20">
+          {getTypeIcon("sm")}
+        </div>
+        
+        {/* Rarity indicator - bottom right with matching colors */}
+        <div className="absolute bottom-2 right-2 z-20">
+          <div className={`text-xs px-1 py-0.5 rounded ${MAIN_SCREEN_RARITY_STYLES[card.rarity].bg} ${MAIN_SCREEN_RARITY_STYLES[card.rarity].text} font-bold`}>
+            {card.rarity.charAt(0).toUpperCase()}
+          </div>
+        </div>
+        
+        {/* Equipped silver inner glow effect */}
+        {isEquipped && showEquippedBadge && (
+          <div className="absolute inset-0 rounded-lg ring-1 ring-gray-300/60 shadow-inner shadow-gray-300/30 z-15" />
+        )}
+
+        {/* Rarity Glow Effect */}
+        <div 
+          className={`absolute inset-0 rounded-lg opacity-20 ${
+            MAIN_SCREEN_RARITY_STYLES[card.rarity].bg
+          }`}
+        />
+      </div>
+
+      {/* Card Info */}
+      <div className="space-y-2">
+        <div>
+          <h4 className={`font-semibold text-white ${
+            isCompact ? "text-xs" : "text-sm"
+          } truncate text-center`}>
+            {card.name}
+          </h4>
+          
+          {/* Merge Progress Bar replacing rarity and type */}
+          <div className="mt-2 space-y-1">
+            <div className="w-full bg-gray-700/50 rounded-full h-2">
+              <div 
+                className="bg-gradient-to-r from-blue-400 to-purple-400 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${(mergeLevel / maxMergeLevel) * 100}%` }}
+              />
+            </div>
+            <div className="text-xs text-white/60 text-center">
+              {mergeLevel}/{maxMergeLevel}
+            </div>
+          </div>
+        </div>
+
+        {/* Stats - Better arranged layout */}
+        {isCompact ? (
+          // Compact stats - 2x2 grid with backgrounds
+          <div className="grid grid-cols-2 gap-1.5 text-xs">
+            <div className="flex items-center justify-between bg-black/20 rounded px-2 py-1">
+              <span>❤️</span>
+              <span className="text-white/90 font-medium">{card.hp}</span>
+            </div>
+            <div className="flex items-center justify-between bg-black/20 rounded px-2 py-1">
+              <span>⚔️</span>
+              <span className="text-white/90 font-medium">{card.attack}</span>
+            </div>
+            <div className="flex items-center justify-between bg-black/20 rounded px-2 py-1">
+              <span>🛡️</span>
+              <span className="text-white/90 font-medium">{card.defense}</span>
+            </div>
+            <div className="flex items-center justify-between bg-black/20 rounded px-2 py-1">
+              <span>🎯</span>
+              <span className="text-white/90 font-medium">{card.critical}</span>
+            </div>
+          </div>
+        ) : (
+          // Full stats - Better arranged 2x2 grid with backgrounds
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="flex items-center justify-between bg-black/20 rounded-lg px-3 py-2">
+              <Heart className="w-3 h-3 text-red-400" />
+              <span className="text-white/90 font-medium">{card.hp}</span>
+            </div>
+            <div className="flex items-center justify-between bg-black/20 rounded-lg px-3 py-2">
+              <Sword className="w-3 h-3 text-orange-400" />
+              <span className="text-white/90 font-medium">{card.attack}</span>
+            </div>
+            <div className="flex items-center justify-between bg-black/20 rounded-lg px-3 py-2">
+              <Shield className="w-3 h-3 text-blue-400" />
+              <span className="text-white/90 font-medium">{card.defense}</span>
+            </div>
+            <div className="flex items-center justify-between bg-black/20 rounded-lg px-3 py-2">
+              <Target className="w-3 h-3 text-purple-400" />
+              <span className="text-white/90 font-medium">{card.critical}</span>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Action Buttons */}
       {showActions && (
-        <GlassCardFooter className={isCompact ? "p-3 pt-0" : "p-4 pt-0"}>
+        <div className={`${isCompact ? "mt-2 px-0" : "mt-3 px-0"}`}>
           <div className="flex gap-2 w-full">
             <button
               onClick={handleEquipToggle}
@@ -833,7 +884,7 @@ export function MonsterCard({
               </button>
             )}
           </div>
-        </GlassCardFooter>
+        </div>
       )}
 
       {/* Battle Mode - No actions, just hover effects */}
@@ -842,6 +893,6 @@ export function MonsterCard({
           ⚔️
         </div>
       )}
-    </GlassCard>
+    </div>
   )
 }

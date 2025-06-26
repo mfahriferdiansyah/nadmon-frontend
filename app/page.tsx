@@ -118,7 +118,9 @@ export default function GachaGame() {
         onOpenBattleground={() => openPopup("battleground")}
         equippedCardsCount={equippedCards.length}
         collectionCount={collection.length}
-          />
+        equippedCards={equippedCards}
+        onUnequipCard={handleUnequipCard}
+      />
 
       {/* Glass Popups */}
       {activePopup === "inventory" && (
