@@ -7,6 +7,7 @@ import { GameUI } from "@/components/game-ui"
 import { InventoryPopup } from "@/components/inventory-popup"
 import { ShopPopup } from "@/components/shop-popup"
 import { BattlegroundPopup } from "@/components/battleground-popup"
+import { UnderDevelopmentOverlay } from "@/components/under-development-overlay"
 import { PackOpeningAnimation } from "@/components/pack-opening-animation"
 import { FocusedCardSession } from "@/components/focused-card-session"
 import { generateRandomCards } from "@/utils/card-utils"
@@ -19,6 +20,7 @@ type ActivePopup = "inventory" | "shop" | "battleground" | null
 export default function GachaGame() {
   // Popup states
   const [activePopup, setActivePopup] = useState<ActivePopup>(null)
+  const [showUnderDevelopment, setShowUnderDevelopment] = useState(false)
 
   // Game states
   const [collection, setCollection] = useState<PokemonCard[]>([
@@ -38,9 +40,18 @@ export default function GachaGame() {
   // Popup handlers
   const openPopup = (popup: ActivePopup) => {
     setActivePopup(popup)
+    if (popup === "battleground") {
+      setShowUnderDevelopment(true)
+    }
   }
 
   const closePopup = () => {
+    setActivePopup(null)
+    setShowUnderDevelopment(false)
+  }
+
+  const closeUnderDevelopment = () => {
+    setShowUnderDevelopment(false)
     setActivePopup(null)
   }
 
@@ -148,6 +159,13 @@ export default function GachaGame() {
         <BattlegroundPopup
           equippedCards={equippedCards}
           onClose={closePopup}
+        />
+      )}
+
+      {/* Under Development Overlay - Higher z-index than battleground */}
+      {showUnderDevelopment && (
+        <UnderDevelopmentOverlay
+          onClose={closeUnderDevelopment}
         />
       )}
 

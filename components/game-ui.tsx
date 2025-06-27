@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { Package, Sword, ShoppingBag, Swords, BarChart3, Heart, Shield, Target, UserX, ChevronUp, ChevronDown, Flame, Droplets, Leaf, Zap } from "lucide-react"
+import { Package, Sword, ShoppingBag, Swords, BarChart3, Heart, Shield, Target, UserX, ChevronUp, ChevronDown, Flame, Droplets, Leaf, Zap, Lock, PawPrint } from "lucide-react"
 import type { PokemonCard } from "@/types/card"
 import Image from "next/image"
 import { useState } from "react"
@@ -71,6 +71,17 @@ export function GameUI({
   onUnequipCard,
 }: GameUIProps) {
   const [showEquippedMonsters, setShowEquippedMonsters] = useState(true)
+  const [lockWiggle, setLockWiggle] = useState(false)
+
+  const handleBattleClick = () => {
+    if (equippedCardsCount === 0) {
+      // Trigger wiggle animation
+      setLockWiggle(true)
+      setTimeout(() => setLockWiggle(false), 500)
+      return
+    }
+    onOpenBattleground()
+  }
 
   return (
     <div className="absolute inset-0 pointer-events-none z-20">
@@ -81,7 +92,7 @@ export function GameUI({
           <div className="glass-panel px-4 py-2 rounded-xl backdrop-blur-md bg-white/10 border border-white/20">
             <div className="flex items-center gap-4 text-white">
               <div className="flex items-center gap-2">
-                <Package className="w-4 h-4" />
+                <PawPrint className="w-4 h-4 text-white" />
                 <span className="text-sm font-medium">{collectionCount}</span>
               </div>
               <div className="flex items-center gap-2">
@@ -232,54 +243,55 @@ export function GameUI({
           </div>
         </div>
 
-        {/* New Circular Menu - Bottom Right */}
+        {/* Horizontal Glass Menu - Bottom Right */}
         <div className="absolute bottom-8 right-8 pointer-events-auto">
-          <div className="relative">
-            {/* Main Inventory Button - Large Circle */}
-          <button
+          <div className="flex items-end gap-4">
+            {/* Inventory Button - Left */}
+            <button
               onClick={onOpenInventory}
-              className="circular-menu-main group relative"
+              className={`glass-menu-medium group ${equippedCardsCount === 0 ? 'inventory-attention' : ''}`}
             >
-              <Package className="w-8 h-8 text-white" />
-              {collectionCount > 0 && (
-                <div className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold">
-                  {collectionCount > 9 ? '9+' : collectionCount}
-                </div>
-              )}
-              <span className="circular-tooltip">Inventory</span>
-          </button>
-
-            {/* Battle Button - Smaller Circle on Top */}
-          <button
-            onClick={onOpenBattleground}
-              className="circular-menu-small group absolute -top-16 left-1/2 transform -translate-x-1/2"
-          >
-            <Swords className="w-5 h-5 text-white" />
-            {equippedCardsCount > 0 && (
-              <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                {equippedCardsCount}
-              </div>
-            )}
-              <span className="circular-tooltip">Battle</span>
+              <PawPrint className="w-8 h-8 text-white" />
+              <span className="glass-tooltip">Manage your cards</span>
             </button>
 
-            {/* Shop Button - Smaller Circle on the Side */}
+            {/* Shop Button - Center */}
             <button
               onClick={onOpenShop}
-              className="circular-menu-small group absolute top-1/2 -left-16 transform -translate-y-1/2"
+              className="glass-menu-medium group"
             >
-              <ShoppingBag className="w-5 h-5 text-white" />
-              <span className="circular-tooltip">Shop</span>
-          </button>
+              <ShoppingBag className="w-8 h-8 text-white" />
+              <span className="glass-tooltip">Buy card packs</span>
+            </button>
 
-            {/* Connecting Lines/Dots for Visual Appeal */}
-            <div className="absolute inset-0 pointer-events-none">
-              {/* Connection to battle button */}
-              <div className="absolute top-0 left-1/2 w-px h-8 bg-gradient-to-t from-white/20 to-transparent transform -translate-x-1/2"></div>
+            {/* Battle Button - Right (Main) */}
+            <button
+              onClick={handleBattleClick}
+              className={`glass-menu-main group relative ${
+                equippedCardsCount === 0 
+                  ? 'glass-menu-locked' 
+                  : 'glass-menu-battle'
+              }`}
+            >
+              {/* Always show battle icon */}
+              <Swords className={`w-10 h-10 ${equippedCardsCount === 0 ? 'text-gray-300' : 'text-white'}`} />
               
-              {/* Connection to shop button */}
-              <div className="absolute top-1/2 left-0 w-8 h-px bg-gradient-to-l from-white/20 to-transparent transform -translate-y-1/2"></div>
-            </div>
+              {/* Lock icon overlay when locked */}
+              {equippedCardsCount === 0 && (
+                <div className={`absolute -top-2 -right-2 w-6 h-6 bg-gray-500/90 rounded-full flex items-center justify-center border-2 border-white/50 ${lockWiggle ? 'wiggle-animation' : ''}`}>
+                  <Lock className="w-3 h-3 text-white" />
+                </div>
+              )}
+
+              <span className="glass-tooltip">
+                {equippedCardsCount === 0 ? 'Equip cards to unlock battle' : 'Enter Battle Arena'}
+              </span>
+
+              {/* Battle ready indicator */}
+              {equippedCardsCount > 0 && (
+                <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full animate-ping" style={{ backgroundColor: 'rgba(131, 110, 249, 0.6)' }}></div>
+              )}
+            </button>
           </div>
         </div>
       </div>
@@ -293,7 +305,7 @@ export function GameUI({
               <h1 className="text-white text-lg font-bold">nadMon on Monad</h1>
               <div className="flex items-center gap-3 text-white text-sm">
                 <div className="flex items-center gap-1">
-                  <Package className="w-4 h-4" />
+                  <PawPrint className="w-4 h-4 text-white" />
                   <span>{collectionCount}</span>
                 </div>
                 <div className="flex items-center gap-1">
@@ -307,40 +319,48 @@ export function GameUI({
 
         {/* Mobile Bottom Navigation */}
         <div className="absolute bottom-4 left-4 right-4 pointer-events-auto">
-          <div className="glass-panel rounded-2xl backdrop-blur-md bg-white/10 border border-white/20 p-3">
+          <div className="glass-panel rounded-2xl backdrop-blur-md bg-white/10 border border-white/20 p-4">
             <div className="flex justify-around items-center">
               <button
                 onClick={onOpenInventory}
-                className="flex flex-col items-center gap-1 p-3 rounded-xl hover:bg-white/10 transition-colors relative min-w-0"
+                className={`flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-white/15 transition-colors relative min-w-0 ${equippedCardsCount === 0 ? 'inventory-attention-mobile' : ''}`}
               >
-                <Package className="w-6 h-6 text-white" />
-                <span className="text-white text-xs">Inventory</span>
-                {collectionCount > 0 && (
-                  <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                    {collectionCount > 9 ? '9+' : collectionCount}
-                  </div>
-                )}
+                <PawPrint className="w-8 h-8 text-white" />
+                <span className="text-white text-xs font-semibold">Inventory</span>
               </button>
 
               <button
                 onClick={onOpenShop}
-                className="flex flex-col items-center gap-1 p-3 rounded-xl hover:bg-white/10 transition-colors min-w-0"
+                className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-white/15 transition-colors min-w-0"
               >
-                <ShoppingBag className="w-6 h-6 text-white" />
-                <span className="text-white text-xs">Shop</span>
+                <ShoppingBag className="w-8 h-8 text-white drop-shadow-lg" />
+                <span className="text-white text-xs font-semibold">Shop</span>
               </button>
 
               <button
                 onClick={onOpenBattleground}
-                className="flex flex-col items-center gap-1 p-3 rounded-xl hover:bg-white/10 transition-colors relative min-w-0"
+                className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-colors relative min-w-0 ${
+                  equippedCardsCount === 0 
+                    ? 'opacity-60 cursor-not-allowed' 
+                    : 'monad-battle-hover'
+                }`}
+                disabled={equippedCardsCount === 0}
               >
-                <Swords className="w-6 h-6 text-white" />
-                <span className="text-white text-xs">Battle</span>
-                {equippedCardsCount > 0 && (
-                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                    {equippedCardsCount}
-                  </div>
-                )}
+                <div className="relative">
+                  <Swords className={`w-8 h-8 drop-shadow-lg ${
+                    equippedCardsCount === 0 ? 'text-gray-400' : 'text-white'
+                  }`} />
+                  {equippedCardsCount === 0 && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-lg">🔒</span>
+                    </div>
+                  )}
+                </div>
+                <span className={`text-xs font-semibold ${
+                  equippedCardsCount === 0 ? 'text-gray-400' : 'text-white'
+                }`}>
+                  {equippedCardsCount === 0 ? 'Locked' : 'Battle'}
+                </span>
               </button>
             </div>
           </div>
@@ -348,26 +368,149 @@ export function GameUI({
       </div>
 
       <style jsx>{`
-        .circular-menu-main {
-          @apply w-20 h-20 rounded-full backdrop-blur-md bg-white/15 border-2 border-white/30 
-                 flex items-center justify-center hover:bg-white/25 transition-all duration-300
-                 shadow-2xl hover:scale-110 hover:shadow-white/20;
-        }
-
-        .circular-menu-small {
-          @apply w-14 h-14 rounded-full backdrop-blur-md bg-white/10 border border-white/20 
-                 flex items-center justify-center hover:bg-white/20 transition-all duration-300
-                 shadow-lg hover:scale-110;
-        }
-
         .glass-panel {
           @apply backdrop-blur-md bg-white/10 border border-white/20 shadow-lg;
         }
 
-        .circular-tooltip {
-          @apply absolute bottom-full mb-3 left-1/2 transform -translate-x-1/2 px-3 py-1 
-                 bg-black/80 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 
-                 transition-opacity whitespace-nowrap pointer-events-none;
+        .glass-menu-main {
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          background: rgba(255, 255, 255, 0.15);
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.3s ease;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+          position: relative;
+        }
+
+        .glass-menu-main:hover {
+          transform: scale(1.05);
+          background: rgba(255, 255, 255, 0.25);
+          border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .glass-menu-locked {
+          background: rgba(156, 163, 175, 0.3) !important;
+          border-color: rgba(156, 163, 175, 0.5) !important;
+          color: rgb(209, 213, 219);
+          cursor: not-allowed;
+        }
+
+        .glass-menu-locked:hover {
+          transform: none !important;
+        }
+
+        .glass-menu-battle {
+          background: rgba(131, 110, 249, 0.3) !important;
+          border-color: rgba(131, 110, 249, 0.5) !important;
+          color: white;
+        }
+
+        .glass-menu-battle:hover {
+          background: rgba(131, 110, 249, 0.4) !important;
+          border-color: rgba(131, 110, 249, 0.6) !important;
+        }
+
+        .glass-menu-medium {
+          width: 64px;
+          height: 64px;
+          border-radius: 50%;
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          background: rgba(255, 255, 255, 0.15);
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .glass-menu-medium:hover {
+          transform: scale(1.05);
+          background: rgba(255, 255, 255, 0.25);
+          border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .glass-tooltip {
+          position: absolute;
+          bottom: 100%;
+          margin-bottom: 12px;
+          left: 50%;
+          transform: translateX(-50%);
+          padding: 8px 12px;
+          background: rgba(0, 0, 0, 0.8);
+          color: white;
+          font-size: 12px;
+          border-radius: 8px;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+          white-space: nowrap;
+          pointer-events: none;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+        }
+
+        .group:hover .glass-tooltip {
+          opacity: 1;
+        }
+
+        .monad-battle-hover:hover {
+          background-color: rgba(131, 110, 249, 0.2);
+        }
+
+        .inventory-attention {
+          animation: inventoryBounce 1.5s ease-in-out infinite;
+        }
+
+        .inventory-attention-mobile {
+          animation: inventoryBounceMobile 1.5s ease-in-out infinite;
+        }
+
+        .wiggle-animation {
+          animation: wiggle 0.5s ease-in-out;
+        }
+
+        @keyframes inventoryBounce {
+          0%, 100% { 
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: scale(1) translateY(0);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+          }
+          50% { 
+            background: rgba(131, 110, 249, 0.8) !important;
+            border-color: rgba(131, 110, 249, 1) !important;
+            transform: scale(1.1) translateY(-8px);
+            box-shadow: 0 8px 25px rgba(131, 110, 249, 0.6);
+          }
+        }
+
+        @keyframes inventoryBounceMobile {
+          0%, 100% { 
+            background-color: rgba(255, 255, 255, 0.05);
+            transform: scale(1) translateY(0);
+          }
+          50% { 
+            background-color: rgba(131, 110, 249, 0.7);
+            transform: scale(1.05) translateY(-4px);
+          }
+        }
+
+        @keyframes wiggle {
+          0%, 100% { transform: rotate(0deg); }
+          15% { transform: rotate(-10deg); }
+          30% { transform: rotate(10deg); }
+          45% { transform: rotate(-8deg); }
+          60% { transform: rotate(8deg); }
+          75% { transform: rotate(-5deg); }
+          90% { transform: rotate(5deg); }
         }
       `}</style>
     </div>
