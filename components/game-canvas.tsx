@@ -54,6 +54,17 @@ interface MonsterPosition {
   currentThought: string
   nextThoughtTime: number
   thoughtDuration: number
+  // Event properties
+  isInEvent: boolean
+  eventRole?: 'leader' | 'follower'
+  trainPosition?: number // Position in train (0 = leader, 1 = first follower, etc.)
+  eventTargetX?: number
+  eventTargetY?: number
+  // Random happiness properties
+  nextRandomHappinessTime: number
+  // End celebration properties
+  isCelebrating: boolean
+  celebrationStartTime: number
 }
 
 interface StarParticle {
@@ -85,6 +96,20 @@ interface ThoughtBubble {
   duration: number
 }
 
+interface GameEvent {
+  id: string
+  type: 'cho_cho_train' | 'dance_party' | 'hide_and_seek'
+  isActive: boolean
+  startTime: number
+  duration: number
+  leaderId?: number
+  participants: number[]
+  eventData?: any
+  currentDialogMonsterIndex?: number // Index of monster currently speaking
+}
+
+
+
 // Cute and fun thoughts for monsters using icon style
 const MONSTER_THOUGHTS = [
   "I wonder what's for dinner...",
@@ -114,14 +139,240 @@ const MONSTER_THOUGHTS = [
   "Sunshine makes me happy!"
 ]
 
+// Event dialog for different game events
+const EVENT_DIALOGS = {
+  cho_cho_train: {
+    during: [
+      "Cho cho!",
+      "Choo choo!",
+      "Chuga chuga!",
+      "Woo woo!"
+    ],
+    ending: [
+      "That was fun!",
+      "Thanks guys!",
+      "Let's play again later!",
+      "I'm always happy to play with you!",
+      "I wonder what we gonna play next?",
+      "See you later!",
+      "Great train ride!",
+      "Until next time!",
+      "That was awesome!",
+      "Love playing together!",
+      "Can't wait for more fun!",
+      "Best train ever!"
+    ]
+  }
+}
+
 export function GameCanvas({ equippedMonsters }: GameCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null)
   const [monsterPositions, setMonsterPositions] = useState<MonsterPosition[]>([])
   const [hoveredMonsterId, setHoveredMonsterId] = useState<number | null>(null)
   const [starParticles, setStarParticles] = useState<StarParticle[]>([])
   const [loveParticles, setLoveParticles] = useState<LoveParticle[]>([])
-  const animationRef = useRef<number>()
+  const animationRef = useRef<number>(0)
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 })
+  
+  // Game Event System
+  const [currentEvent, setCurrentEvent] = useState<GameEvent | null>(null)
+  const eventTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const trainPathRef = useRef({ x: 0, y: 0, angle: 0, time: 0 })
+  const currentEventRef = useRef<GameEvent | null>(null)
+
+  // Game Event Functions
+  const startChoChoTrainEvent = useCallback(() => {
+    if (currentEvent?.isActive || monsterPositions.length < 2) return
+
+    const availableMonsters = monsterPositions.filter(m => !m.isInEvent)
+    if (availableMonsters.length < 2) return
+
+    // Select random leader
+    const leader = availableMonsters[Math.floor(Math.random() * availableMonsters.length)]
+    const followers = availableMonsters.filter(m => m.id !== leader.id)
+
+    const event: GameEvent = {
+      id: `cho_cho_train_${Date.now()}`,
+      type: 'cho_cho_train',
+      isActive: true,
+      startTime: Date.now(),
+      duration: 25000, // 25 seconds for longer train experience
+      leaderId: leader.id,
+      participants: [leader.id, ...followers.map(f => f.id)],
+      eventData: { trainSpeed: 0.8 },
+      currentDialogMonsterIndex: 0 // Start with first monster
+    }
+
+    setCurrentEvent(event)
+
+    // Update monster states for event - only leader starts, followers join gradually
+    setMonsterPositions(prev => prev.map(monster => {
+      if (monster.id === leader.id) {
+        return {
+          ...monster,
+          isInEvent: true,
+          eventRole: 'leader' as const,
+          trainPosition: 0,
+          isIdle: false,
+          isThinking: false
+        }
+      }
+      // Followers will join gradually, not immediately
+      return monster
+    }))
+
+    // Gradually add followers to the train every 1.5 seconds
+    followers.forEach((follower, index) => {
+      setTimeout(() => {
+        setMonsterPositions(prev => prev.map(monster => {
+          if (monster.id === follower.id) {
+            const trainPosition = index + 1
+            return {
+              ...monster,
+              isInEvent: true,
+              eventRole: 'follower' as const,
+              trainPosition,
+              isIdle: false,
+              isThinking: false
+            }
+          }
+          return monster
+        }))
+      }, (index + 1) * 1500) // Each follower joins 1.5 seconds after the previous one
+    })
+
+    // Initialize train path
+    trainPathRef.current = {
+      x: leader.x,
+      y: leader.y,
+      angle: 0,
+      time: 0
+    }
+
+    // Start sequential "cho cho" dialog immediately - no initial thoughts
+    setTimeout(() => {
+      if (currentEvent?.isActive) {
+        setMonsterPositions(prev => {
+          const trainLeader = prev.find(m => m.isInEvent && m.eventRole === 'leader')
+          if (trainLeader && !trainLeader.isThinking) {
+            const duringThoughts = EVENT_DIALOGS.cho_cho_train.during
+            const randomDuringThought = duringThoughts[Math.floor(Math.random() * duringThoughts.length)]
+            return prev.map(monster => {
+              if (monster.id === trainLeader.id) {
+                return {
+                  ...monster,
+                  isThinking: true,
+                  thoughtStartTime: Date.now(),
+                  currentThought: randomDuringThought,
+                  thoughtDuration: 2000
+                }
+              }
+              return monster
+            })
+          }
+          return prev
+        })
+      }
+    }, 1000) // Start cho cho dialog right away
+
+    // Set timer to end event
+    eventTimerRef.current = setTimeout(() => {
+      endCurrentEvent()
+    }, event.duration)
+  }, [currentEvent, monsterPositions])
+
+  const endCurrentEvent = useCallback(() => {
+    if (eventTimerRef.current) {
+      clearTimeout(eventTimerRef.current)
+      eventTimerRef.current = null
+    }
+
+    // Show ending thoughts before resetting
+    const endingThoughts = EVENT_DIALOGS.cho_cho_train.ending
+    
+    setMonsterPositions(prev => {
+      return prev.map(monster => {
+        if (monster.isInEvent) {
+          const randomEndingThought = endingThoughts[Math.floor(Math.random() * endingThoughts.length)]
+          return {
+            ...monster,
+            isThinking: true,
+            thoughtStartTime: Date.now(),
+            currentThought: randomEndingThought,
+            thoughtDuration: 3000
+          }
+        }
+        return monster
+      })
+    })
+
+    // Reset after a short delay to let ending thoughts show
+    setTimeout(() => {
+      // Start celebration wiggle before final reset
+      setMonsterPositions(prev => prev.map(monster => {
+        if (monster.isInEvent) {
+          return {
+            ...monster,
+            isCelebrating: true,
+            celebrationStartTime: Date.now(),
+            isThinking: false, // End thoughts to start celebration
+            currentThought: ""
+          }
+        }
+        return monster
+      }))
+      
+      // Final reset after celebration period
+      setTimeout(() => {
+        setCurrentEvent(null)
+        setMonsterPositions(prev => prev.map(monster => ({
+          ...monster,
+          isInEvent: false,
+          eventRole: undefined,
+          trainPosition: undefined,
+          eventTargetX: undefined,
+          eventTargetY: undefined,
+          isCelebrating: false,
+          celebrationStartTime: 0,
+          isIdle: true,
+          idleStartTime: Date.now()
+        })))
+      }, 2000) // 2 seconds of wiggle celebration
+    }, 500)
+
+    // Love particles removed - they were causing performance issues
+  }, [])
+
+  // Test trigger for events (keyboard shortcut)
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 't' && e.ctrlKey) { // Ctrl+T to trigger event
+        e.preventDefault()
+        if (!currentEvent?.isActive) {
+          startChoChoTrainEvent()
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyPress)
+    return () => window.removeEventListener('keydown', handleKeyPress)
+  }, [startChoChoTrainEvent, currentEvent])
+
+
+
+  // Update currentEvent ref when state changes
+  useEffect(() => {
+    currentEventRef.current = currentEvent
+  }, [currentEvent])
+
+  // Cleanup event system on unmount
+  useEffect(() => {
+    return () => {
+      if (eventTimerRef.current) {
+        clearTimeout(eventTimerRef.current)
+      }
+    }
+  }, [])
 
   // Update canvas size on resize
   useEffect(() => {
@@ -148,6 +399,11 @@ export function GameCanvas({ equippedMonsters }: GameCanvasProps) {
       return
     }
 
+    // Don't initialize monsters until canvas size is available
+    if (canvasSize.width === 0 || canvasSize.height === 0) {
+      return
+    }
+
     setMonsterPositions(prevPositions => {
       const newPositions = validMonsters.map((monster, index) => {
         const existingPosition = prevPositions.find(pos => pos.id === monster.id)
@@ -160,54 +416,6 @@ export function GameCanvas({ equippedMonsters }: GameCanvasProps) {
         const maxY = canvasSize.height * 0.9 // 90% from top = 10% from bottom
         const margin = 100
         const now = Date.now()
-        
-        // Ensure canvas size is available before spawning
-        if (canvasSize.width === 0 || canvasSize.height === 0) {
-          // Default positioning if canvas size not ready
-          const x = 300 + index * 200
-          const y = 400 + Math.random() * 100
-          
-          return {
-            id: monster.id,
-            x,
-            y,
-            targetX: x,
-            targetY: y,
-            velocityX: 0,
-            velocityY: 0,
-            card: monster,
-            lastMovement: now,
-            lastDirectionChange: now,
-            scale: 1,
-            rotation: 0,
-            isIdle: true,
-            idleStartTime: now,
-            facingLeft: false,
-            movementDistance: 0,
-            movementOffset: Math.random() * 3000,
-            idleOffset: Math.random() * 2000,
-            personalitySpeed: 0.8 + Math.random() * 0.4,
-            isHovered: false,
-            hoverStartTime: 0,
-            isRunning: false,
-            runStartTime: 0,
-            runTargetX: 0,
-            runTargetY: 0,
-            touchCount: 0,
-            runThreshold: 1 + Math.floor(Math.random() * 2), // 1-2 touches
-            isShowingLove: false,
-            loveStartTime: 0,
-            lastTouchTime: 0,
-            isCaught: false,
-            caughtStartTime: 0,
-            lastHoverTime: 0,
-            isThinking: false,
-            thoughtStartTime: 0,
-            currentThought: "",
-            nextThoughtTime: now + 5000 + Math.random() * 10000, // 5-15 seconds from now
-            thoughtDuration: 3000 + Math.random() * 2000 // 3-5 seconds duration
-          }
-        }
         
         // More distributed initial positioning within allowed area
         const sectors = 3 // Divide area into sectors for better distribution
@@ -262,7 +470,18 @@ export function GameCanvas({ equippedMonsters }: GameCanvasProps) {
           thoughtStartTime: 0,
           currentThought: "",
           nextThoughtTime: now + 5000 + Math.random() * 10000, // 5-15 seconds from now
-          thoughtDuration: 3000 + Math.random() * 2000 // 3-5 seconds duration
+          thoughtDuration: 3000 + Math.random() * 2000, // 3-5 seconds duration
+          // Event states
+          isInEvent: false,
+          eventRole: undefined,
+          trainPosition: undefined,
+          eventTargetX: undefined,
+          eventTargetY: undefined,
+          // Random happiness properties
+          nextRandomHappinessTime: now + 3000 + Math.random() * 5000, // First happiness in 3-8 seconds (super frequent!)
+          // End celebration properties
+          isCelebrating: false,
+          celebrationStartTime: 0
         }
       })
       
@@ -272,6 +491,11 @@ export function GameCanvas({ equippedMonsters }: GameCanvasProps) {
 
   // Generate new random target for a monster with movement constraints
   const generateNewTarget = useCallback((monster: MonsterPosition) => {
+    // Skip normal movement if monster is in an event
+    if (monster.isInEvent) {
+      return { targetX: monster.targetX, targetY: monster.targetY, movementDistance: 0 }
+    }
+
     const minY = canvasSize.height * 0.6 // Bottom 40%
     const maxY = canvasSize.height * 0.9 // Bottom 10%
     const margin = 100
@@ -293,6 +517,24 @@ export function GameCanvas({ equippedMonsters }: GameCanvasProps) {
     targetY = Math.max(minY, Math.min(maxY, targetY))
     
     return { targetX, targetY, movementDistance }
+  }, [canvasSize])
+
+  // Generate train path for cho cho train event
+  const generateTrainPath = useCallback((time: number) => {
+    const margin = 150
+    const centerX = canvasSize.width / 2
+    const centerY = canvasSize.height * 0.75 // Move in lower area
+    const radiusX = (canvasSize.width - margin * 2) / 3
+    const radiusY = (canvasSize.height * 0.2) // Smaller vertical radius
+    
+    // Create a figure-8 pattern
+    const speed = 0.0008 // Slower speed for smoother movement
+    const t = time * speed
+    
+    const x = centerX + radiusX * Math.sin(t)
+    const y = centerY + radiusY * Math.sin(t * 2) / 2
+    
+    return { x, y }
   }, [canvasSize])
 
   // Handle monster hover with avoidance behavior
@@ -394,11 +636,12 @@ export function GameCanvas({ equippedMonsters }: GameCanvasProps) {
         // Thought bubble logic - only when idle and no interaction
         let updatedMonster = { ...monster }
         
-        // Check if it's time to start a new thought
+        // Check if it's time to start a new thought (but not during events)
         if (!monster.isThinking && 
             !monster.isHovered && 
             !monster.isRunning && 
             !monster.isShowingLove && 
+            !monster.isInEvent &&
             monster.isIdle &&
             now >= monster.nextThoughtTime) {
           
@@ -420,6 +663,231 @@ export function GameCanvas({ equippedMonsters }: GameCanvasProps) {
             currentThought: "",
             nextThoughtTime: now + 8000 + Math.random() * 12000 // Next thought in 8-20 seconds
           }
+        }
+
+        // Random happiness system - make monsters occasionally happy
+        if (!monster.isShowingLove && 
+            !monster.isHovered && 
+            !monster.isRunning && 
+            (monster.isIdle || monster.isInEvent) &&  // Allow happiness during train events too
+            now >= monster.nextRandomHappinessTime) {
+          
+          updatedMonster = {
+            ...updatedMonster,
+            isShowingLove: true,
+            loveStartTime: now,
+            isIdle: false, // Exit idle to show love animation
+            nextRandomHappinessTime: now + 6000 + Math.random() * 6000 // Next happiness in 6-12 seconds (super frequent!)
+          }
+
+          // Generate love particles for random happiness (same as click)
+          const newLoveParticles: LoveParticle[] = Array.from({ length: 3 }, (_, i) => ({
+            id: now + i + Math.random() * 1000, // Unique IDs
+            x: monster.x + (Math.random() - 0.5) * 40,
+            y: monster.y - 10 + (Math.random() - 0.5) * 20,
+            opacity: 1,
+            scale: 0.8 + Math.random() * 0.4,
+            delay: i * 150
+          }))
+          setLoveParticles(prev => [...prev, ...newLoveParticles])
+        }
+
+        // End celebration wiggle effect
+        if (monster.isCelebrating) {
+          const celebrationDuration = now - monster.celebrationStartTime
+          const celebrationTime = 2000 // 2 seconds of celebration
+          
+          if (celebrationDuration < celebrationTime) {
+            // Intense wiggle celebration effect
+            const celebrationFreq = 0.03 * monster.personalitySpeed // Faster wiggle than normal
+            const wiggleIntensity = 8 // Much stronger wiggle
+            const rotationIntensity = 15 // Strong rotation wiggle
+            
+            // Multi-directional wiggle with random elements
+            const wiggleX = Math.sin(now * celebrationFreq) * wiggleIntensity + Math.sin(now * celebrationFreq * 1.3) * (wiggleIntensity * 0.5)
+            const wiggleY = Math.cos(now * celebrationFreq * 1.1) * wiggleIntensity + Math.cos(now * celebrationFreq * 0.8) * (wiggleIntensity * 0.3)
+            const celebrationRotation = Math.sin(now * celebrationFreq * 1.5) * rotationIntensity
+            const celebrationScale = 1.1 + Math.sin(now * celebrationFreq * 2) * 0.1 // Scale bouncing
+            
+            return {
+              ...updatedMonster,
+              x: monster.x + wiggleX,
+              y: monster.y + wiggleY,
+              scale: celebrationScale,
+              rotation: celebrationRotation,
+              velocityX: monster.velocityX * 0.9, // Slow down movement during celebration
+              velocityY: monster.velocityY * 0.9
+            }
+          }
+        }
+
+        // Event behavior - takes priority over all other behaviors
+        if (monster.isInEvent && currentEventRef.current?.type === 'cho_cho_train') {
+          const currentEventData = currentEventRef.current
+          if (!currentEventData) return updatedMonster
+          
+          // Update train path timing
+          trainPathRef.current.time = now - currentEventData.startTime
+
+          // Sequential "cho cho" dialog system - only for monsters currently in the train
+          const activeTrainMembers = prev.filter(m => m.isInEvent).sort((a, b) => (a.trainPosition || 0) - (b.trainPosition || 0))
+          
+          if (activeTrainMembers.length > 0) {
+            const currentSpeakerIndex = currentEventData.currentDialogMonsterIndex || 0
+            const activeSpeakerIndex = currentSpeakerIndex % activeTrainMembers.length
+            const currentSpeaker = activeTrainMembers[activeSpeakerIndex]
+            const isCurrentSpeaker = currentSpeaker && monster.id === currentSpeaker.id
+            
+            // Check if current speaker's dialog has ended and trigger next speaker
+            if (isCurrentSpeaker && monster.isThinking) {
+              const dialogAge = now - monster.thoughtStartTime
+              if (dialogAge >= monster.thoughtDuration) {
+                // Move to next active train member
+                const nextIndex = (currentSpeakerIndex + 1) % activeTrainMembers.length
+                setCurrentEvent(prev => prev ? { ...prev, currentDialogMonsterIndex: nextIndex } : null)
+              }
+            }
+            
+            // Start dialog for current speaker if they're not already thinking
+            if (isCurrentSpeaker && !monster.isThinking) {
+              const duringThoughts = EVENT_DIALOGS.cho_cho_train.during
+              const randomDuringThought = duringThoughts[Math.floor(Math.random() * duringThoughts.length)]
+              updatedMonster = {
+                ...updatedMonster,
+                isThinking: true,
+                thoughtStartTime: now,
+                currentThought: randomDuringThought,
+                thoughtDuration: 2000 // Fixed 2 seconds for consistency
+              }
+            }
+          }
+
+          if (monster.eventRole === 'leader') {
+            // Leader follows the generated path
+            const pathPosition = generateTrainPath(trainPathRef.current.time)
+            
+            const deltaX = pathPosition.x - monster.x
+            const deltaY = pathPosition.y - monster.y
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
+            
+            let newVelocityX = monster.velocityX
+            let newVelocityY = monster.velocityY
+            
+            if (distance > 8) {
+              // Use similar physics to normal movement but slightly faster
+              const trainSpeed = (currentEventData.eventData?.trainSpeed || 0.8) * monster.personalitySpeed
+              const forceX = (deltaX / distance) * trainSpeed
+              const forceY = (deltaY / distance) * trainSpeed
+              
+              newVelocityX += forceX
+              newVelocityY += forceY
+            }
+            
+            // Apply friction similar to normal movement
+            newVelocityX *= 0.88
+            newVelocityY *= 0.88
+            
+            // Determine facing direction for train based on movement
+            let newFacingLeft = monster.facingLeft
+            if (Math.abs(newVelocityX) > 0.1) {
+              newFacingLeft = newVelocityX < 0
+            }
+            
+            // Natural walking animation similar to normal movement
+            const speed_factor = Math.sqrt(newVelocityX * newVelocityX + newVelocityY * newVelocityY)
+            const walkingScale = 0.95 + Math.sin(now * 0.004 * monster.personalitySpeed) * 0.04 + speed_factor * 0.01
+            const walkingRotation = Math.atan2(newVelocityY, newVelocityX) * 1.5
+            
+            return {
+              ...updatedMonster,
+              x: monster.x + newVelocityX,
+              y: monster.y + newVelocityY,
+              velocityX: newVelocityX,
+              velocityY: newVelocityY,
+              facingLeft: newFacingLeft,
+              scale: Math.max(0.9, Math.min(1.2, walkingScale)),
+              rotation: Math.max(-5, Math.min(5, walkingRotation))
+            }
+          } else if (monster.eventRole === 'follower' && monster.trainPosition !== undefined) {
+            // Followers follow the monster in front of them
+            const trainMonsters = prev.filter(m => m.isInEvent && currentEventData.participants.includes(m.id))
+              .sort((a, b) => (a.trainPosition || 0) - (b.trainPosition || 0))
+            
+            let newVelocityX = monster.velocityX
+            let newVelocityY = monster.velocityY
+            let newFacingLeft = monster.facingLeft
+            
+            if (monster.trainPosition > 0 && trainMonsters[monster.trainPosition - 1]) {
+              const targetMonster = trainMonsters[monster.trainPosition - 1]
+              
+              // Simplified approach - maintain consistent distance with consistent speed
+              const followDistance = 60 // Increased gap between train cars for better visual spacing
+              
+              // Calculate position behind the target monster
+              const deltaX = targetMonster.x - monster.x
+              const deltaY = targetMonster.y - monster.y
+              const currentDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
+              
+              // Match leader's movement threshold and logic for consistency
+              if (currentDistance > 8) { // Same threshold as leader
+                // Calculate desired position
+                const normalizedX = deltaX / currentDistance
+                const normalizedY = deltaY / currentDistance
+                
+                const desiredX = targetMonster.x - normalizedX * followDistance
+                const desiredY = targetMonster.y - normalizedY * followDistance
+                
+                const moveX = desiredX - monster.x
+                const moveY = desiredY - monster.y
+                const moveDistance = Math.sqrt(moveX * moveX + moveY * moveY)
+                
+                if (moveDistance > 8) { // Same threshold as leader
+                  // Use same consistent train speed as leader - no more complex calculations
+                  const trainSpeed = (currentEventData.eventData?.trainSpeed || 0.8) * monster.personalitySpeed
+                  const forceX = (moveX / moveDistance) * trainSpeed
+                  const forceY = (moveY / moveDistance) * trainSpeed
+                  
+                  newVelocityX += forceX
+                  newVelocityY += forceY
+                }
+              }
+              
+              // Determine facing direction based on actual movement
+              if (currentDistance > followDistance * 1.5) {
+                // When far from formation, face the direction of movement
+                if (Math.abs(newVelocityX) > 0.1) {
+                  newFacingLeft = newVelocityX < 0
+                }
+              } else if (timeSinceDirectionChange > 500) {
+                // When close to formation, gradually match target monster's facing
+                newFacingLeft = targetMonster.facingLeft
+              }
+            }
+            
+            // Apply friction similar to normal movement
+            newVelocityX *= 0.88
+            newVelocityY *= 0.88
+            
+            // Natural follower walking animation
+            const followerSpeed = Math.sqrt(newVelocityX * newVelocityX + newVelocityY * newVelocityY)
+            const followerScale = 0.95 + Math.sin(now * 0.004 * monster.personalitySpeed + (monster.trainPosition * 0.3)) * 0.04 + followerSpeed * 0.01
+            const followerRotation = Math.atan2(newVelocityY, newVelocityX) * 1.2
+            
+            return {
+              ...updatedMonster,
+              x: monster.x + newVelocityX,
+              y: monster.y + newVelocityY,
+              velocityX: newVelocityX,
+              velocityY: newVelocityY,
+              facingLeft: newFacingLeft,
+              lastDirectionChange: newFacingLeft !== monster.facingLeft ? now : monster.lastDirectionChange,
+              scale: Math.max(0.9, Math.min(1.2, followerScale)),
+              rotation: Math.max(-5, Math.min(5, followerRotation))
+            }
+          }
+          
+          // Fallback for event monsters without specific roles
+          return updatedMonster
         }
         
         // If interaction happens, cancel current thought
@@ -717,17 +1185,21 @@ export function GameCanvas({ equippedMonsters }: GameCanvasProps) {
     })).filter(particle => particle.opacity > 0))
     
     animationRef.current = requestAnimationFrame(animate)
-  }, [generateNewTarget, canvasSize])
+  }, [generateNewTarget, generateTrainPath, canvasSize])
 
   // Start/stop animation
   useEffect(() => {
     if (monsterPositions.length > 0 && canvasSize.width > 0) {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
+      }
       animationRef.current = requestAnimationFrame(animate)
     }
     
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current)
+        animationRef.current = 0
       }
     }
   }, [animate, monsterPositions.length, canvasSize])
@@ -811,6 +1283,13 @@ export function GameCanvas({ equippedMonsters }: GameCanvasProps) {
                     background: `radial-gradient(circle, ${position.card.color}80 0%, transparent 60%)`
                   }}
                 />
+              )}
+
+              {/* Event indicator - visual debug */}
+              {position.isInEvent && (
+                <div className="absolute -top-2 -right-2 w-4 h-4 bg-orange-500 border-2 border-white rounded-full text-xs flex items-center justify-center">
+                  {position.eventRole === 'leader' ? '🚂' : '🚃'}
+                </div>
               )}
 
 
@@ -924,6 +1403,10 @@ export function GameCanvas({ equippedMonsters }: GameCanvasProps) {
           )
         })}
 
+
+
+
+
         {/* Empty State Message */}
         {equippedMonsters.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -935,6 +1418,9 @@ export function GameCanvas({ equippedMonsters }: GameCanvasProps) {
               <div className="text-4xl mb-4">🐾</div>
               <p className="text-white/50 text-sm">
                 Equip up to 3 monsters at once and hover over them to interact!
+              </p>
+              <p className="text-white/40 text-xs mt-4">
+                💡 Tip: Press Ctrl+T to trigger a Cho Cho Train event!
               </p>
             </div>
           </div>
