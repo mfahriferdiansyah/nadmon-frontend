@@ -1,6 +1,32 @@
-import { createConfig, http } from 'wagmi';
+import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 import { defineChain } from 'viem';
-import { injected } from 'wagmi/connectors';
+
+// Define Monad Testnet chain
+export const monadTestnet = defineChain({
+  id: 10143,
+  name: 'Monad Testnet',
+  network: 'monad-testnet',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'MON',
+    symbol: 'MON',
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://testnet-rpc.monad.xyz'],
+    },
+    public: {
+      http: ['https://testnet-rpc.monad.xyz'],
+    },
+  },
+  blockExplorers: {
+    default: { 
+      name: 'Monad Explorer', 
+      url: 'https://blockscout-monad.blockvision.org' 
+    },
+  },
+  testnet: true,
+});
 
 // Define Anvil local chain
 export const anvilChain = defineChain({
@@ -26,13 +52,12 @@ export const anvilChain = defineChain({
   testnet: true,
 });
 
-// Create wagmi config
-export const wagmiConfig = createConfig({
-  chains: [anvilChain],
-  connectors: [injected()],
-  transports: {
-    [anvilChain.id]: http('http://127.0.0.1:8545'),
-  },
+// Create wagmi config with RainbowKit
+export const wagmiConfig = getDefaultConfig({
+  appName: 'Nadmon - Digital Monster Collection Game',
+  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'nadmon-game-demo',
+  chains: [monadTestnet, anvilChain],
+  ssr: true,
 });
 
 // Declare module for wagmi config

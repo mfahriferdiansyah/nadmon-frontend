@@ -8,9 +8,32 @@ export interface PackType {
     border: string
   }
   description: string
+  elementFocus?: string
+  locked?: boolean
+  price: {
+    mon: number
+    cookies: number
+  }
 }
 
 export const PACK_TYPES: PackType[] = [
+  {
+    id: "trial",
+    name: "TRIAL PACK",
+    colors: {
+      primary: "from-purple-500 via-violet-500 to-purple-600",
+      secondary: "border-purple-300",
+      tertiary: "shadow-purple-500/50",
+      border: "border-violet-300",
+    },
+    description: "Start your journey",
+    elementFocus: "No Element Focus",
+    locked: false,
+    price: {
+      mon: 0.01,
+      cookies: 100
+    }
+  },
   {
     id: "fire",
     name: "FIRE PACK",
@@ -21,6 +44,12 @@ export const PACK_TYPES: PackType[] = [
       border: "border-yellow-300",
     },
     description: "Blazing power awaits",
+    elementFocus: "Fire Element Focus",
+    locked: true,
+    price: {
+      mon: 0.02,
+      cookies: 200
+    }
   },
   {
     id: "water",
@@ -32,6 +61,12 @@ export const PACK_TYPES: PackType[] = [
       border: "border-cyan-300",
     },
     description: "Depths of mystery",
+    elementFocus: "Water Element Focus",
+    locked: true,
+    price: {
+      mon: 0.02,
+      cookies: 200
+    }
   },
   {
     id: "nature",
@@ -43,5 +78,11 @@ export const PACK_TYPES: PackType[] = [
       border: "border-lime-300",
     },
     description: "Natural forces unleashed",
+    elementFocus: "Nature Element Focus",
+    locked: true,
+    price: {
+      mon: 0.02,
+      cookies: 200
+    }
   },
 ]

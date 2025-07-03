@@ -1,19 +1,40 @@
-// Contract addresses for local deployment (Anvil)
+// Contract addresses - supports both local and Monad Testnet
 export const CONTRACT_ADDRESSES = {
-  // Core game contracts
-  nadmonNFT: "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
-  cookiesToken: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+  // Monad Testnet addresses
+  monadTestnet: {
+    nadmonNFT: "0xd6486e985Db773f3eb5767cE5FBe099e31D87A1e",
+    cookiesToken: "0xC5f6e87a61dAa7a15B458318e4D05C82C0cCD10b",
+    expeditionCenter: "0x5a7fc62B6EF9ACc5AD1a9a7E582b2A636ab83504",
+    pveBattle: "0xAb87cf4A9ee8Ab510ca8a96546E71f97CD92DC8a",
+    pvpBattle: "0xe1DD9f7C03281A659998bDDd84019c93473F5C7e",
+    weeklyRewards: "0xE0E0C7731b99659dC0b3624f2147bD929E3B503D",
+    nadmonRandomizer: "0x400c5BDee811120bc484979F9018beA8ea8E713D",
+  },
   
-  // Game mechanics
-  expeditionCenter: "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
-  pveBattle: "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
-  pvpBattle: "0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e",
-  weeklyRewards: "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",
-  
-  // Testing contracts
-  mockMON: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-  nadmonRandomizer: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+  // Local Anvil addresses
+  anvil: {
+    nadmonNFT: "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+    cookiesToken: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+    expeditionCenter: "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+    pveBattle: "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
+    pvpBattle: "0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e",
+    weeklyRewards: "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",
+    mockMON: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    nadmonRandomizer: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+  }
 } as const;
+
+// Helper function to get contract addresses based on chain
+export function getContractAddresses(chainId: number) {
+  switch (chainId) {
+    case 10143: // Monad Testnet
+      return CONTRACT_ADDRESSES.monadTestnet;
+    case 31337: // Anvil Local
+      return CONTRACT_ADDRESSES.anvil;
+    default:
+      return CONTRACT_ADDRESSES.monadTestnet; // Default to Monad Testnet
+  }
+}
 
 // Local network configuration
 export const ANVIL_CHAIN = {

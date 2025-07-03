@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { Package, Zap, Shield, Heart, Target, Flame, Droplets, Leaf, Brain, Mountain, Bug } from "lucide-react"
+import { Package, Zap, Shield, Heart, Target, Sword, Flame, Droplets, Leaf, Brain, Mountain, Bug } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { RARITY_STYLES, ELEMENT_THEMES } from "@/constants/cards"
 import type { CardComponentProps } from "@/types/card"
@@ -346,7 +346,8 @@ export function CardComponent({
               >
                 <div className="flex justify-between items-start">
                   <div className="flex-1 min-w-0 pr-3">
-                    <h3 className={`${getNameClass()} text-slate-800 leading-tight truncate`}>{card.name}</h3>
+                    <h3 className={`${getNameClass()} text-slate-800 leading-tight truncate text-center uppercase`}>{card.name}</h3>
+                    <div className={`${layout.typeText} text-slate-500 font-medium text-center`}>#{card.id}</div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {getTypeIcon(card.type, layout.typeIconSize)}
@@ -357,20 +358,9 @@ export function CardComponent({
 
               {/* Image */}
               <div
-                className={`flex-1 ${layout.imageMargin} relative overflow-hidden rounded-lg`}
-                style={{
-                  background: `
-                    linear-gradient(135deg, 
-                      ${elementTheme.primary}60 0%, 
-                      ${elementTheme.secondary}40 50%, 
-                      ${elementTheme.accent}50 100%
-                    ),
-                    radial-gradient(circle at 30% 70%, ${elementTheme.primary}40 0%, transparent 60%),
-                    radial-gradient(circle at 70% 30%, ${elementTheme.secondary}30 0%, transparent 50%)
-                  `,
-                }}
+                className={`flex-1 ${layout.imageMargin} relative overflow-hidden rounded-lg bg-white`}
               >
-                <img src={card.image || "/placeholder.svg"} alt={card.name} className="w-full h-full object-cover" />
+                <img src={card.image || "/placeholder.svg"} alt={card.name} className="w-full h-full object-contain" />
               </div>
 
               {/* Stats */}
@@ -386,42 +376,28 @@ export function CardComponent({
               >
                 <div className={`grid grid-cols-2 gap-3 ${layout.statsText}`}>
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <Zap className={`${layout.statsIconSize} text-red-500 flex-shrink-0`} />
-                    <span className="text-slate-600 font-medium flex-shrink-0">ATK</span>
-                    <span className="font-bold text-slate-800 ml-auto flex-shrink-0">{card.attack}</span>
+                    <Heart className={`${layout.statsIconSize} text-red-500 flex-shrink-0`} />
+                    <span className="text-slate-600 font-medium flex-shrink-0">HP</span>
+                    <span className="font-bold text-slate-800 ml-auto flex-shrink-0">{card.hp}</span>
                   </div>
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <Shield className={`${layout.statsIconSize} text-blue-500 flex-shrink-0`} />
-                    <span className="text-slate-600 font-medium flex-shrink-0">DEF</span>
-                    <span className="font-bold text-slate-800 ml-auto flex-shrink-0">{card.defense}</span>
+                    <Sword className={`${layout.statsIconSize} text-orange-500 flex-shrink-0`} />
+                    <span className="text-slate-600 font-medium flex-shrink-0">ATK</span>
+                    <span className="font-bold text-slate-800 ml-auto flex-shrink-0">{card.attack}</span>
                   </div>
                 </div>
 
                 <div className={`grid grid-cols-2 gap-3 ${layout.statsText} mt-2.5`}>
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <Heart className={`${layout.statsIconSize} text-pink-500 flex-shrink-0`} />
-                    <span className="text-slate-600 font-medium flex-shrink-0">HP</span>
-                    <span className="font-bold text-slate-800 ml-auto flex-shrink-0">{card.hp}</span>
+                    <Shield className={`${layout.statsIconSize} text-blue-500 flex-shrink-0`} />
+                    <span className="text-slate-600 font-medium flex-shrink-0">DEF</span>
+                    <span className="font-bold text-slate-800 ml-auto flex-shrink-0">{card.defense}</span>
                   </div>
                   <div className="flex items-center gap-1.5 min-w-0">
                     <Target className={`${layout.statsIconSize} text-purple-500 flex-shrink-0`} />
                     <span className="text-slate-600 font-medium flex-shrink-0">CRIT</span>
-                    <span className="font-bold text-slate-800 ml-auto flex-shrink-0">{card.critical}%</span>
+                    <span className="font-bold text-slate-800 ml-auto flex-shrink-0">{card.critical}</span>
                   </div>
-                </div>
-
-                {/* Power level indicator */}
-                <div className="flex items-center gap-2.5 mt-2.5">
-                  <div className={`flex-1 bg-slate-200 rounded-full ${layout.powerBarHeight}`}>
-                    <div
-                      className={`${layout.powerBarHeight} rounded-full transition-all duration-500`}
-                      style={{
-                        width: `${Math.min((card.hp + card.attack + card.defense) / 5, 100)}%`,
-                        background: `linear-gradient(90deg, ${elementTheme.secondary} 0%, ${elementTheme.accent} 100%)`,
-                      }}
-                    />
-                  </div>
-                  <span className={`${layout.statsText} text-slate-500 font-medium flex-shrink-0`}>PWR</span>
                 </div>
               </div>
 

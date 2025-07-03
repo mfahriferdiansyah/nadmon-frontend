@@ -104,7 +104,7 @@ export function GameUI({
 
           {/* Game Title */}
           <div className="glass-panel px-6 py-3 rounded-xl backdrop-blur-md bg-white/10 border border-white/20">
-            <h1 className="text-white text-xl font-bold">nadMon on Monad</h1>
+            <h1 className="text-white text-xl font-bold">NadMon on Monad</h1>
           </div>
 
           {/* Placeholder for balance */}
@@ -151,10 +151,10 @@ export function GameUI({
                             {/* Monster Image */}
                             <div className="relative w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
                               <Image
-                                src={`/monster/${card.id}.png`}
+                                src={card.image}
                                 alt={card.name}
                                 fill
-                                className="object-cover"
+                                className="object-contain"
                                 onError={(e) => {
                                   e.currentTarget.src = "/placeholder.svg?height=200&width=150"
                                 }}
@@ -302,7 +302,7 @@ export function GameUI({
         <div className="absolute top-4 left-4 right-4 pointer-events-auto">
           <div className="glass-panel px-4 py-3 rounded-xl backdrop-blur-md bg-white/10 border border-white/20">
             <div className="flex items-center justify-between">
-              <h1 className="text-white text-lg font-bold">nadMon on Monad</h1>
+              <h1 className="text-white text-lg font-bold">NadMon on Monad</h1>
               <div className="flex items-center gap-3 text-white text-sm">
                 <div className="flex items-center gap-1">
                   <PawPrint className="w-4 h-4 text-white" />

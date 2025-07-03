@@ -1249,12 +1249,15 @@ export function GameCanvas({ equippedMonsters }: GameCanvasProps) {
             {/* Monster Image Only */}
             <div className="relative w-20 h-20 drop-shadow-lg">
               <Image
-                src={`/monster/${position.card.id}.png`}
+                src={position.card.image}
                 alt={position.card.name}
                 fill
                 className="object-contain"
                 style={{
                   filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))'
+                }}
+                onError={(e) => {
+                  e.currentTarget.src = "/placeholder-logo.png"
                 }}
               />
               {/* Subtle glow effect */}

@@ -5,6 +5,7 @@ import { X, Sword, Shield, Heart, Zap, Target } from "lucide-react"
 import type { PokemonCard } from "@/types/card"
 import { RARITY_STYLES } from "@/constants/cards"
 import Image from "next/image"
+import { WalletHandle } from "@/components/wallet-handle"
 
 interface BattlegroundPopupProps {
   equippedCards: PokemonCard[]
@@ -49,12 +50,15 @@ export function BattlegroundPopup({
             <h2 className="text-2xl font-bold text-white mb-1">Battleground</h2>
             <p className="text-white/70">Prepare your team for battle</p>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-lg hover:bg-white/10 transition-colors text-white"
-          >
-            <X className="w-6 h-6" />
-          </button>
+          <div className="flex items-center gap-3">
+            <WalletHandle />
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg hover:bg-white/10 transition-colors text-white"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
         </div>
 
         {/* Content */}
@@ -166,10 +170,10 @@ export function BattlegroundPopup({
                     {/* Monster Image */}
                     <div className="relative aspect-[3/4] mb-4 rounded-lg overflow-hidden">
                       <Image
-                        src={`/monster/${card.id}.png`}
+                        src={card.image}
                         alt={card.name}
                         fill
-                        className="object-cover"
+                        className="object-contain"
                         onError={(e) => {
                           e.currentTarget.src = "/placeholder.svg?height=200&width=150"
                         }}
