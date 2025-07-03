@@ -1,8 +1,8 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
-import { X, Merge, Flame, Sparkles, Target, Check, AlertCircle } from "lucide-react"
+import { useState, useMemo, useCallback, useEffect } from "react"
+import { X, Merge, Flame, Sparkles, Target, Check, AlertCircle, Trash2, RefreshCw, ArrowUpDown } from "lucide-react"
 import type { PokemonCard } from "@/types/card"
 import { MonsterCard } from "@/components/card-component"
 
@@ -10,7 +10,8 @@ interface FusionPopupProps {
   targetCard: PokemonCard
   collection: PokemonCard[]
   onClose: () => void
-  onFusion: (targetCard: PokemonCard, sacrificeCard: PokemonCard) => void
+  onFusion: (targetCard: PokemonCard, sacrificeCards: PokemonCard[]) => void
+  onSwapTarget?: (newTargetCard: PokemonCard) => void
   isLoading?: boolean
 }
 
@@ -19,38 +20,92 @@ export function FusionPopup({
   collection,
   onClose,
   onFusion,
+  onSwapTarget,
   isLoading = false
 }: FusionPopupProps) {
-  const [selectedSacrifice, setSelectedSacrifice] = useState<PokemonCard | null>(null)
+  const [selectedSacrifices, setSelectedSacrifices] = useState<PokemonCard[]>([])
   const [showConfirmation, setShowConfirmation] = useState(false)
+  const [simulatedProgress, setSimulatedProgress] = useState(0)
 
-  // Filter monsters of the same type as the target, excluding the target itself
-  const compatibleMonsters = collection.filter(
-    card => card.type === targetCard.type && card.id !== targetCard.id
+  // Filter monsters of the same name/kind as the target, excluding the target itself
+  const compatibleMonsters = useMemo(() => 
+    collection.filter(card => card.name === targetCard.name && card.id !== targetCard.id),
+    [collection, targetCard]
   )
 
-  // Calculate fusion progress (mock data for now)
-  const fusionProgress = 3 // This would come from props or state
+  // Get actual fusion progress from NFT attribute
+  const currentFusionLevel = targetCard.fusion || 0
   const maxFusionLevel = 10
+  const projectedFusionLevel = Math.min(currentFusionLevel + selectedSacrifices.length + simulatedProgress, maxFusionLevel)
 
-  const handleSacrificeSelect = (card: PokemonCard) => {
-    setSelectedSacrifice(card)
-  }
+  // Show toast function (you can implement your own toast system)
+  const showToast = useCallback((message: string, type: 'error' | 'success' | 'info' = 'info') => {
+    // Simple alert for now - replace with your toast system
+    console.log(`${type.toUpperCase()}: ${message}`)
+    // You can integrate with react-hot-toast or your preferred toast library here
+  }, [])
 
-  const handleConfirmFusion = () => {
-    if (selectedSacrifice) {
-      onFusion(targetCard, selectedSacrifice)
+  const handleSacrificeToggle = useCallback((card: PokemonCard) => {
+    // Check if fusion is already maxed
+    if (currentFusionLevel >= maxFusionLevel) {
+      showToast("Fusion level is already at maximum (10/10)!", 'error')
+      return
+    }
+
+    // Check if adding this card would exceed max fusion
+    if (currentFusionLevel + selectedSacrifices.length >= maxFusionLevel) {
+      showToast("Cannot select more monsters - fusion level would exceed maximum!", 'error')
+      return
+    }
+
+    setSelectedSacrifices(prev => {
+      const isSelected = prev.some(s => s.id === card.id)
+      if (isSelected) {
+        return prev.filter(s => s.id !== card.id)
+      } else {
+        return [...prev, card]
+      }
+    })
+  }, [currentFusionLevel, maxFusionLevel, selectedSacrifices.length, showToast])
+
+  const handleSwapToTarget = useCallback((card: PokemonCard) => {
+    if (onSwapTarget) {
+      onSwapTarget(card)
+      setSelectedSacrifices([]) // Clear selections when swapping target
+    }
+  }, [onSwapTarget])
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedSacrifices([])
+  }, [])
+
+  const handleConfirmFusion = useCallback(() => {
+    if (selectedSacrifices.length > 0) {
+      onFusion(targetCard, selectedSacrifices)
       setShowConfirmation(false)
     }
-  }
+  }, [selectedSacrifices, onFusion, targetCard])
 
-  const handleProceedToConfirm = () => {
-    if (selectedSacrifice) {
+  const handleProceedToConfirm = useCallback(() => {
+    if (selectedSacrifices.length > 0) {
       setShowConfirmation(true)
     }
-  }
+  }, [selectedSacrifices])
 
-  const canFuse = selectedSacrifice && fusionProgress < maxFusionLevel && !isLoading
+  const canFuse = selectedSacrifices.length > 0 && currentFusionLevel < maxFusionLevel && !isLoading
+
+  // Simulate progress animation when selections change
+  useEffect(() => {
+    if (selectedSacrifices.length > 0) {
+      setSimulatedProgress(0)
+      const timer = setTimeout(() => {
+        setSimulatedProgress(selectedSacrifices.length)
+      }, 300)
+      return () => clearTimeout(timer)
+    } else {
+      setSimulatedProgress(0)
+    }
+  }, [selectedSacrifices.length])
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-4">
@@ -66,11 +121,11 @@ export function FusionPopup({
         <div className="flex items-center justify-between p-4 md:p-6 border-b border-white/20">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-r from-purple-500/30 to-pink-500/30 rounded-lg flex items-center justify-center backdrop-blur-sm">
-              <Merge className="w-5 h-5 text-purple-300" />
+              <RefreshCw className="w-5 h-5 text-purple-300" />
             </div>
             <div>
               <h2 className="text-xl md:text-2xl font-bold text-white mb-1">Monster Fusion</h2>
-              <p className="text-white/70 text-sm md:text-base">Combine monsters to increase fusion level</p>
+              <p className="text-white/70 text-sm md:text-base">Combine monsters to increase fusion level ({currentFusionLevel}/{maxFusionLevel})</p>
             </div>
           </div>
           <button
@@ -91,11 +146,11 @@ export function FusionPopup({
               
               <h3 className="text-xl font-bold text-white mb-4">Confirm Fusion</h3>
               <p className="text-white/70 mb-6">
-                Are you sure you want to sacrifice <strong className="text-white">{selectedSacrifice?.name}</strong> 
-                {" "}to enhance <strong className="text-white">{targetCard.name}</strong>?
+                Are you sure you want to sacrifice <strong className="text-white">{selectedSacrifices.length} {targetCard.name}</strong> 
+                {selectedSacrifices.length === 1 ? ' monster' : ' monsters'} to enhance your target <strong className="text-white">{targetCard.name}</strong>?
               </p>
               <p className="text-red-300 text-sm mb-6">
-                ⚠️ The sacrificed monster will be permanently destroyed
+                ⚠️ The sacrificed monsters will be permanently destroyed
               </p>
               
               <div className="flex gap-3">
@@ -128,65 +183,101 @@ export function FusionPopup({
         ) : (
           /* Main Fusion Interface */
           <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-            {/* Target Card Section */}
-            <div className="w-full md:w-80 p-4 md:p-6 border-b md:border-b-0 md:border-r border-white/20 bg-white/5">
-              <div className="flex items-center gap-2 mb-4">
-                <Target className="w-5 h-5 text-green-400" />
-                <h3 className="text-lg font-semibold text-white">Target Monster</h3>
+            {/* Compact Target Card Section */}
+            <div className="w-full md:w-72 p-3 md:p-4 border-b md:border-b-0 md:border-r border-white/20 bg-white/5 flex-shrink-0">
+              <div className="flex items-center gap-2 mb-3">
+                <Target className="w-4 h-4 text-green-400" />
+                <h3 className="text-base font-semibold text-white">Target</h3>
               </div>
               
-              <div className="space-y-4">
-                {/* Target Card Display */}
+              <div className="space-y-3">
+                {/* Target Card Display - Compact */}
                 <div className="relative">
                   <MonsterCard
                     card={targetCard}
-                    variant="inventory"
+                    variant="compact"
                     showActions={false}
-                    mergeLevel={fusionProgress}
+                    mergeLevel={currentFusionLevel}
                     maxMergeLevel={maxFusionLevel}
                     className="ring-2 ring-green-400/50 shadow-lg shadow-green-400/20"
                   />
-                  <div className="absolute -top-2 -right-2 bg-gradient-to-r from-green-400 to-blue-400 text-black text-xs px-2 py-1 rounded-full font-bold shadow-lg">
+                  <div className="absolute -top-1 -right-1 bg-gradient-to-r from-green-400 to-blue-400 text-black text-xs px-1.5 py-0.5 rounded-full font-bold shadow-lg">
                     TARGET
                   </div>
                 </div>
 
-                {/* Fusion Progress */}
-                <div className="glass-panel rounded-lg p-4 bg-white/5 border border-white/20">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-white/80 text-sm">Fusion Progress</span>
-                    <span className="text-white font-bold text-sm">{fusionProgress}/{maxFusionLevel}</span>
+                {/* Compact Fusion Progress */}
+                <div className="glass-panel rounded-lg p-3 bg-white/5 border border-white/20">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-white/80 text-xs">Progress</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-white/60 text-xs">{currentFusionLevel}</span>
+                      {selectedSacrifices.length > 0 && (
+                        <>
+                          <span className="text-white/60 text-xs">→</span>
+                          <span className="text-green-400 font-bold text-xs">{projectedFusionLevel}</span>
+                        </>
+                      )}
+                      <span className="text-white/60 text-xs">/{maxFusionLevel}</span>
+                    </div>
                   </div>
-                  <div className="w-full bg-gray-700/50 rounded-full h-3">
+                  <div className="w-full bg-gray-700/50 rounded-full h-2 relative">
+                    {/* Current level */}
                     <div 
-                      className="bg-gradient-to-r from-blue-400 to-purple-400 h-3 rounded-full transition-all duration-300"
-                      style={{ width: `${(fusionProgress / maxFusionLevel) * 100}%` }}
+                      className="bg-gradient-to-r from-blue-400 to-purple-400 h-2 rounded-full transition-all duration-500"
+                      style={{ width: `${(currentFusionLevel / maxFusionLevel) * 100}%` }}
                     />
+                    {/* Projected level (preview) */}
+                    {selectedSacrifices.length > 0 && (
+                      <div 
+                        className="absolute top-0 bg-gradient-to-r from-green-400 to-cyan-400 h-2 rounded-full transition-all duration-500 opacity-70"
+                        style={{ 
+                          left: `${(currentFusionLevel / maxFusionLevel) * 100}%`,
+                          width: `${(selectedSacrifices.length / maxFusionLevel) * 100}%` 
+                        }}
+                      />
+                    )}
                   </div>
-                  <div className="flex justify-between text-xs text-white/60 mt-1">
-                    <span>Beginner</span>
-                    <span>Master</span>
-                  </div>
+                  {currentFusionLevel >= maxFusionLevel && (
+                    <div className="text-center mt-1">
+                      <span className="text-yellow-400 text-xs font-bold">MAX LEVEL REACHED!</span>
+                    </div>
+                  )}
                 </div>
 
-                {/* Fusion Benefits */}
-                <div className="glass-panel rounded-lg p-4 bg-white/5 border border-white/20">
-                  <h4 className="text-white font-semibold mb-2 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-yellow-400" />
-                    Fusion Benefits
+                {/* Compact Benefits */}
+                <div className="glass-panel rounded-lg p-3 bg-white/5 border border-white/20">
+                  <h4 className="text-white font-semibold mb-2 flex items-center gap-2 text-sm">
+                    <Sparkles className="w-3 h-3 text-yellow-400" />
+                    Benefits
                   </h4>
-                  <div className="space-y-2 text-sm">
+                  <div className="grid grid-cols-1 gap-1 text-xs">
                     <div className="flex justify-between text-white/80">
-                      <span>HP Bonus:</span>
-                      <span className="text-green-400">+{fusionProgress * 5}</span>
+                      <span>HP:</span>
+                      <span className="text-green-400">
+                        +{currentFusionLevel * 5}
+                        {selectedSacrifices.length > 0 && (
+                          <span className="text-green-300"> → +{projectedFusionLevel * 5}</span>
+                        )}
+                      </span>
                     </div>
                     <div className="flex justify-between text-white/80">
-                      <span>Attack Bonus:</span>
-                      <span className="text-orange-400">+{fusionProgress * 3}</span>
+                      <span>ATK:</span>
+                      <span className="text-orange-400">
+                        +{currentFusionLevel * 3}
+                        {selectedSacrifices.length > 0 && (
+                          <span className="text-orange-300"> → +{projectedFusionLevel * 3}</span>
+                        )}
+                      </span>
                     </div>
                     <div className="flex justify-between text-white/80">
-                      <span>Defense Bonus:</span>
-                      <span className="text-blue-400">+{fusionProgress * 2}</span>
+                      <span>DEF:</span>
+                      <span className="text-blue-400">
+                        +{currentFusionLevel * 2}
+                        {selectedSacrifices.length > 0 && (
+                          <span className="text-blue-300"> → +{projectedFusionLevel * 2}</span>
+                        )}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -195,62 +286,117 @@ export function FusionPopup({
 
             {/* Sacrifice Selection Section */}
             <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="p-4 md:p-6 border-b border-white/20">
-                <div className="flex items-center justify-between mb-4">
+              <div className="p-3 md:p-4 border-b border-white/20 flex-shrink-0">
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <Flame className="w-5 h-5 text-red-400" />
-                    <h3 className="text-lg font-semibold text-white">
-                      Select Sacrifice ({compatibleMonsters.length} compatible)
+                    <Flame className="w-4 h-4 text-red-400" />
+                    <h3 className="text-base font-semibold text-white">
+                      Select Sacrifices ({compatibleMonsters.length} available)
                     </h3>
                   </div>
                   
-                  {selectedSacrifice && (
-                    <div className="flex items-center gap-2 bg-green-500/20 px-3 py-1 rounded-full">
-                      <Check className="w-4 h-4 text-green-400" />
-                      <span className="text-green-300 text-sm font-medium">Selected</span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {selectedSacrifices.length > 0 && (
+                      <>
+                        <div className="flex items-center gap-1 bg-green-500/20 px-2 py-1 rounded-full">
+                          <Check className="w-3 h-3 text-green-400" />
+                          <span className="text-green-300 text-xs font-medium">{selectedSacrifices.length}</span>
+                        </div>
+                        <button
+                          onClick={handleClearSelection}
+                          className="p-1 rounded hover:bg-white/10 transition-colors"
+                          title="Clear selection"
+                        >
+                          <Trash2 className="w-3 h-3 text-red-400" />
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
                 
-                <p className="text-white/70 text-sm">
-                  Choose a monster of the same type <strong className="text-white">({targetCard.type})</strong> to sacrifice for fusion
+                <p className="text-white/70 text-xs">
+                  Select multiple <strong className="text-white">{targetCard.name}</strong> monsters to sacrifice (click to select/deselect)
                 </p>
               </div>
               
-              <div className="flex-1 overflow-y-auto p-4 md:p-6">
+              <div className="flex-1 overflow-y-auto p-3 md:p-4" style={{ maxHeight: 'calc(100vh - 400px)' }}>
                 {compatibleMonsters.length === 0 ? (
-                  <div className="flex items-center justify-center h-64 text-white/50">
+                  <div className="flex items-center justify-center h-48 text-white/50">
                     <div className="text-center">
-                      <Flame className="w-12 h-12 mx-auto mb-3 opacity-50 text-red-400" />
-                      <h4 className="text-lg font-semibold mb-2">No Compatible Monsters</h4>
-                      <p className="text-sm">You need another <strong className="text-white">{targetCard.type}</strong> type monster for fusion</p>
+                      <Flame className="w-10 h-10 mx-auto mb-3 opacity-50 text-red-400" />
+                      <h4 className="text-base font-semibold mb-2">No Compatible Monsters</h4>
+                      <p className="text-xs">You need another <strong className="text-white">{targetCard.name}</strong> for fusion</p>
                     </div>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {compatibleMonsters.map((card) => (
-                      <div
-                        key={card.id}
-                        className={`cursor-pointer transition-all duration-200 hover:scale-105 ${
-                          selectedSacrifice?.id === card.id 
-                            ? 'ring-2 ring-red-400 shadow-lg shadow-red-400/30' 
-                            : 'hover:ring-2 hover:ring-white/30'
-                        }`}
-                        onClick={() => handleSacrificeSelect(card)}
-                      >
-                        <MonsterCard
-                          card={card}
-                          variant="inventory"
-                          showActions={false}
-                          className={selectedSacrifice?.id === card.id ? 'ring-2 ring-red-400/50' : ''}
-                        />
-                        {selectedSacrifice?.id === card.id && (
-                          <div className="absolute -top-2 -right-2 bg-gradient-to-r from-red-400 to-orange-400 text-black text-xs px-2 py-1 rounded-full font-bold shadow-lg">
-                            SACRIFICE
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                    {compatibleMonsters.map((card) => {
+                      const isSelected = selectedSacrifices.some(s => s.id === card.id)
+                      const cardFusionLevel = card.fusion || 0
+                      const isMaxFusion = currentFusionLevel >= maxFusionLevel
+                      const wouldExceedMax = currentFusionLevel + selectedSacrifices.length >= maxFusionLevel && !isSelected
+                      const isDisabled = isMaxFusion || wouldExceedMax
+                      
+                      return (
+                        <div
+                          key={card.id}
+                          className={`relative group transition-all duration-200 ${
+                            isDisabled 
+                              ? 'opacity-50 cursor-not-allowed' 
+                              : 'cursor-pointer hover:scale-105'
+                          } ${
+                            isSelected 
+                              ? 'ring-2 ring-red-400 shadow-lg shadow-red-400/30' 
+                              : !isDisabled ? 'hover:ring-2 hover:ring-white/30' : ''
+                          }`}
+                          onClick={() => !isDisabled && handleSacrificeToggle(card)}
+                        >
+                          <MonsterCard
+                            card={card}
+                            variant="compact"
+                            showActions={false}
+                            className={isSelected ? 'ring-2 ring-red-400/50' : ''}
+                          />
+                          
+                          {/* Selection number badge */}
+                          {isSelected && (
+                            <div className="absolute -top-1 -right-1 bg-gradient-to-r from-red-400 to-orange-400 text-black text-xs px-1.5 py-0.5 rounded-full font-bold shadow-lg z-10">
+                              {selectedSacrifices.findIndex(s => s.id === card.id) + 1}
+                            </div>
+                          )}
+                          
+                          {/* Fusion level indicator */}
+                          {cardFusionLevel > 0 && (
+                            <div className="absolute top-1 left-1 bg-blue-500/80 text-white text-xs px-1 py-0.5 rounded font-bold z-10">
+                              L{cardFusionLevel}
+                            </div>
+                          )}
+                          
+                          {/* Swap to target button */}
+                          {onSwapTarget && !isSelected && !isDisabled && (
+                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center z-20">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleSwapToTarget(card)
+                                }}
+                                className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg transition-colors flex items-center gap-1 text-xs"
+                              >
+                                <ArrowUpDown className="w-3 h-3" />
+                                Swap
+                              </button>
+                            </div>
+                          )}
+                          
+                          {/* Disabled overlay */}
+                          {isDisabled && (
+                            <div className="absolute inset-0 bg-black/40 rounded-lg flex items-center justify-center z-15">
+                              <span className="text-red-300 text-xs font-bold">MAX</span>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
               </div>
@@ -278,9 +424,9 @@ export function FusionPopup({
                 }`}
               >
                 <Merge className="w-5 h-5" />
-                {!selectedSacrifice ? 'Select a Monster to Sacrifice' : 
-                 fusionProgress >= maxFusionLevel ? 'Fusion Level Maxed' : 
-                 'Proceed to Fusion'}
+                {selectedSacrifices.length === 0 ? 'Select Monsters to Sacrifice' : 
+                 currentFusionLevel >= maxFusionLevel ? 'Fusion Level Maxed' : 
+                 `Fuse with ${selectedSacrifices.length} Monster${selectedSacrifices.length === 1 ? '' : 's'} (${currentFusionLevel} → ${projectedFusionLevel})`}
               </button>
             </div>
           </div>

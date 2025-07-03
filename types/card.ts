@@ -10,6 +10,7 @@ export interface PokemonCard {
   speed: number
   critical: number
   color: string
+  fusion?: number // Fusion level (0-10)
 }
 
 export interface PackOpeningAnimationProps {

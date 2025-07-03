@@ -1,10 +1,12 @@
 "use client"
 
 import type React from "react"
+import { useState } from "react"
 import { X, Users, Merge, UserX, Loader2, RefreshCw } from "lucide-react"
 import type { PokemonCard } from "@/types/card"
 import { MonsterCard } from "@/components/card-component"
 import { WalletHandle } from "@/components/wallet-handle"
+import { FusionPopup } from "@/components/fusion-popup"
 
 interface InventoryPopupProps {
   collection: PokemonCard[]
@@ -17,6 +19,7 @@ interface InventoryPopupProps {
   isLoading?: boolean
   error?: string | null
   onRefresh?: () => void
+  onFusion?: (targetCard: PokemonCard, sacrificeCards: PokemonCard[]) => void
 }
 
 export function InventoryPopup({
@@ -30,7 +33,9 @@ export function InventoryPopup({
   isLoading = false,
   error,
   onRefresh,
+  onFusion,
 }: InventoryPopupProps) {
+  const [fusionTarget, setFusionTarget] = useState<PokemonCard | null>(null)
   const handleEquipCard = (card: PokemonCard) => {
     if (equippedCards.length < 3 && !isCardEquipped(card.id)) {
       onEquipCard(card)
@@ -46,8 +51,18 @@ export function InventoryPopup({
   }
 
   const handleMergeCard = (card: PokemonCard) => {
-    // Placeholder for merge functionality
-    console.log("Merge card:", card.name)
+    setFusionTarget(card)
+  }
+
+  const handleFusionComplete = (targetCard: PokemonCard, sacrificeCards: PokemonCard[]) => {
+    if (onFusion) {
+      onFusion(targetCard, sacrificeCards)
+    }
+    setFusionTarget(null)
+  }
+
+  const handleCloseFusion = () => {
+    setFusionTarget(null)
   }
 
   return (
@@ -99,6 +114,7 @@ export function InventoryPopup({
                     onUnequip={() => handleUnequipCard(card)}
                     onSummon={() => handleSummonMonster(card)}
                     showEquippedBadge={false}
+                    mergeLevel={card.fusion || 0}
                   />
                 </div>
               ))}
@@ -125,6 +141,7 @@ export function InventoryPopup({
                     onMerge={() => handleMergeCard(card)}
                     showEquippedBadge={false}
                     className="w-full"
+                    mergeLevel={card.fusion || 0}
                   />
                 </div>
               ))}
@@ -205,6 +222,7 @@ export function InventoryPopup({
                         onUnequip={() => handleUnequipCard(card)}
                         onSummon={() => handleSummonMonster(card)}
                         showEquippedBadge={false}
+                        mergeLevel={card.fusion || 0}
                       />
                     )
                   })}
@@ -280,6 +298,7 @@ export function InventoryPopup({
                       onUnequip={() => handleUnequipCard(card)}
                       onSummon={() => handleSummonMonster(card)}
                       showEquippedBadge={false}
+                      mergeLevel={card.fusion || 0}
                     />
                   )
                 })}
@@ -296,6 +315,17 @@ export function InventoryPopup({
           border: 1px solid rgba(255, 255, 255, 0.2);
         }
       `}</style>
+
+      {/* Fusion Popup */}
+      {fusionTarget && (
+        <FusionPopup
+          targetCard={fusionTarget}
+          collection={collection}
+          onClose={handleCloseFusion}
+          onFusion={handleFusionComplete}
+          onSwapTarget={setFusionTarget}
+        />
+      )}
     </div>
   )
 } 
