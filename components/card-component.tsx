@@ -539,7 +539,7 @@ export function MonsterCard({
   if (isHorizontal) {
     return (
       <div 
-        className={`relative transition-all duration-300 hover:scale-105 ${
+        className={`relative transition-all duration-300 ${
           isEquipped ? "ring-2 ring-gray-300 shadow-lg shadow-gray-300/50" : ""
         } ${className} rounded-lg p-2 border ${
           MAIN_SCREEN_RARITY_STYLES[card.rarity].border
