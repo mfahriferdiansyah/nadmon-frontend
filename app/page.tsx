@@ -10,12 +10,14 @@ import { BattlegroundPopup } from "@/components/battleground-popup"
 import { UnderDevelopmentOverlay } from "@/components/under-development-overlay"
 import { PackOpeningAnimation } from "@/components/pack-opening-animation"
 import { FocusedCardSession } from "@/components/focused-card-session"
+import { GameDemo } from "@/components/game-demo"
 import { generateRandomCards } from "@/utils/card-utils"
 import { MOCK_CARDS } from "@/constants/cards"
 import type { PackType } from "@/constants/packs"
 import type { PokemonCard } from "@/types/card"
+import { Button } from "@/components/ui/button"
 
-type ActivePopup = "inventory" | "shop" | "battleground" | null
+type ActivePopup = "inventory" | "shop" | "battleground" | "web3demo" | null
 
 export default function GachaGame() {
   // Popup states
@@ -122,6 +124,18 @@ export default function GachaGame() {
         equippedMonsters={equippedCards}
       />
       
+      {/* Web3 Demo Button - Development/Testing */}
+      <div className="absolute top-4 right-4 z-50">
+        <Button 
+          onClick={() => openPopup("web3demo")}
+          variant="outline"
+          size="sm"
+          className="bg-blue-600 text-white border-blue-500 hover:bg-blue-700"
+        >
+          Web3 Demo
+        </Button>
+      </div>
+
       {/* Game UI - Floating Action Buttons */}
       <GameUI 
         onOpenInventory={() => openPopup("inventory")}
@@ -160,6 +174,22 @@ export default function GachaGame() {
           equippedCards={equippedCards}
           onClose={closePopup}
         />
+      )}
+
+      {activePopup === "web3demo" && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto relative">
+            <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Web3 Integration Demo</h2>
+              <Button onClick={closePopup} variant="outline" size="sm">
+                Close
+              </Button>
+            </div>
+            <div className="p-6">
+              <GameDemo />
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Under Development Overlay - Higher z-index than battleground */}

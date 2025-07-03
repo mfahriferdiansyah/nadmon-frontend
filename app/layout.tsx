@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { Web3Provider } from '@/components/providers/web3-provider'
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.dev',
+  title: 'Nadmon - Collect, Battle, and Trade Digital Creatures',
+  description: 'A blockchain-based creature collection and battling game',
+  generator: 'Next.js',
 }
 
 export default function RootLayout({
@@ -14,7 +15,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Web3Provider>
+          {children}
+        </Web3Provider>
+      </body>
     </html>
   )
 }
