@@ -5,6 +5,7 @@ import { Package, Sword, ShoppingBag, Swords, BarChart3, Heart, Shield, Target, 
 import type { PokemonCard } from "@/types/card"
 import Image from "next/image"
 import { useState } from "react"
+import { toast } from "@/lib/toast-service"
 
 interface GameUIProps {
   onOpenInventory: () => void
@@ -78,9 +79,21 @@ export function GameUI({
       // Trigger wiggle animation
       setLockWiggle(true)
       setTimeout(() => setLockWiggle(false), 500)
+      toast.warning('Equip monsters to unlock battle')
       return
     }
+    toast.info('Entering battle arena')
     onOpenBattleground()
+  }
+
+  const handleInventoryClick = () => {
+    toast.info('Opening inventory')
+    onOpenInventory()
+  }
+
+  const handleShopClick = () => {
+    toast.info('Opening shop')
+    onOpenShop()
   }
 
   return (
@@ -248,7 +261,7 @@ export function GameUI({
           <div className="flex items-end gap-4">
             {/* Inventory Button - Left */}
             <button
-              onClick={onOpenInventory}
+              onClick={handleInventoryClick}
               className={`glass-menu-medium group ${equippedCardsCount === 0 ? 'inventory-attention' : ''}`}
             >
               <PawPrint className="w-8 h-8 text-white" />
@@ -257,7 +270,7 @@ export function GameUI({
 
             {/* Shop Button - Center */}
             <button
-              onClick={onOpenShop}
+              onClick={handleShopClick}
               className="glass-menu-medium group"
             >
               <ShoppingBag className="w-8 h-8 text-white" />

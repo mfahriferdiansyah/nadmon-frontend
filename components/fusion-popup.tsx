@@ -5,38 +5,51 @@ import { useState, useMemo, useCallback, useEffect } from "react"
 import { X, Merge, Flame, Sparkles, Target, Check, AlertCircle, Trash2, RefreshCw, ArrowUpDown } from "lucide-react"
 import type { PokemonCard } from "@/types/card"
 import { MonsterCard } from "@/components/card-component"
+import { useNadmonFusion } from "@/hooks/use-nadmon-fusion"
 
 interface FusionPopupProps {
   targetCard: PokemonCard
   collection: PokemonCard[]
   onClose: () => void
-  onFusion: (targetCard: PokemonCard, sacrificeCards: PokemonCard[]) => void
+  onFusionComplete?: (targetCard: PokemonCard, sacrificeCards: PokemonCard[]) => void
   onSwapTarget?: (newTargetCard: PokemonCard) => void
-  isLoading?: boolean
 }
 
 export function FusionPopup({
   targetCard,
   collection,
   onClose,
-  onFusion,
-  onSwapTarget,
-  isLoading = false
+  onFusionComplete,
+  onSwapTarget
 }: FusionPopupProps) {
   const [selectedSacrifices, setSelectedSacrifices] = useState<PokemonCard[]>([])
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [simulatedProgress, setSimulatedProgress] = useState(0)
 
-  // Filter monsters of the same name/kind as the target, excluding the target itself
+  // Use the fusion hook
+  const { fuseMonsters, isLoading, isSuccess, error, resetError, state } = useNadmonFusion()
+
+  // Filter monsters of the same type AND name as the target (matching contract requirements)
+  // Contract requires: same element (type field) AND same nadmonType (name field)
   const compatibleMonsters = useMemo(() => 
-    collection.filter(card => card.name === targetCard.name && card.id !== targetCard.id),
+    collection.filter(card => 
+      card.name === targetCard.name && // Same nadmonType (brindle, cervus, etc.)
+      card.type === targetCard.type && // Same element (Fire, Water, etc.)
+      card.id !== targetCard.id
+    ),
     [collection, targetCard]
   )
 
   // Get actual fusion progress from NFT attribute
   const currentFusionLevel = targetCard.fusion || 0
   const maxFusionLevel = 10
-  const projectedFusionLevel = Math.min(currentFusionLevel + selectedSacrifices.length + simulatedProgress, maxFusionLevel)
+  
+  // Calculate total fusion points based on contract logic
+  const totalFusionPoints = [targetCard, ...selectedSacrifices].reduce((sum, card) => {
+    return sum + (card.fusion || 0) + 1 // Each card provides its fusion level + 1
+  }, 0)
+  
+  const projectedFusionLevel = Math.min(totalFusionPoints, maxFusionLevel)
 
   // Show toast function (you can implement your own toast system)
   const showToast = useCallback((message: string, type: 'error' | 'success' | 'info' = 'info') => {
@@ -46,27 +59,24 @@ export function FusionPopup({
   }, [])
 
   const handleSacrificeToggle = useCallback((card: PokemonCard) => {
-    // Check if fusion is already maxed
-    if (currentFusionLevel >= maxFusionLevel) {
-      showToast("Fusion level is already at maximum (10/10)!", 'error')
-      return
-    }
+    // Check if fusion points would be sufficient for evolution
+    const tempSacrifices = selectedSacrifices.some(s => s.id === card.id) 
+      ? selectedSacrifices.filter(s => s.id !== card.id)
+      : [...selectedSacrifices, card]
+    
+    const tempTotalFusion = [targetCard, ...tempSacrifices].reduce((sum, c) => {
+      return sum + (c.fusion || 0) + 1
+    }, 0)
 
-    // Check if adding this card would exceed max fusion
-    if (currentFusionLevel + selectedSacrifices.length >= maxFusionLevel) {
-      showToast("Cannot select more monsters - fusion level would exceed maximum!", 'error')
-      return
+    setSelectedSacrifices(tempSacrifices)
+    
+    // Show helpful info about fusion points
+    if (tempTotalFusion >= 10) {
+      showToast(`Total fusion points: ${tempTotalFusion}/10 - Ready for evolution!`, 'success')
+    } else if (tempSacrifices.length > 0) {
+      showToast(`Total fusion points: ${tempTotalFusion}/10 - Need ${10 - tempTotalFusion} more points`, 'info')
     }
-
-    setSelectedSacrifices(prev => {
-      const isSelected = prev.some(s => s.id === card.id)
-      if (isSelected) {
-        return prev.filter(s => s.id !== card.id)
-      } else {
-        return [...prev, card]
-      }
-    })
-  }, [currentFusionLevel, maxFusionLevel, selectedSacrifices.length, showToast])
+  }, [selectedSacrifices, targetCard, showToast])
 
   const handleSwapToTarget = useCallback((card: PokemonCard) => {
     if (onSwapTarget) {
@@ -79,33 +89,45 @@ export function FusionPopup({
     setSelectedSacrifices([])
   }, [])
 
-  const handleConfirmFusion = useCallback(() => {
-    if (selectedSacrifices.length > 0) {
-      onFusion(targetCard, selectedSacrifices)
-      setShowConfirmation(false)
+  const handleConfirmFusion = useCallback(async () => {
+    if (selectedSacrifices.length > 0 && totalFusionPoints >= 10) {
+      try {
+        await fuseMonsters(targetCard, selectedSacrifices)
+        // The hook will handle the transaction, success will be handled in useEffect
+      } catch (error) {
+        console.error('Fusion failed:', error)
+        // Error is handled by the hook
+      }
     }
-  }, [selectedSacrifices, onFusion, targetCard])
+  }, [selectedSacrifices, totalFusionPoints, fuseMonsters, targetCard])
 
   const handleProceedToConfirm = useCallback(() => {
-    if (selectedSacrifices.length > 0) {
+    if (selectedSacrifices.length > 0 && totalFusionPoints >= 10) {
       setShowConfirmation(true)
+    } else if (selectedSacrifices.length > 0) {
+      showToast(`Need ${10 - totalFusionPoints} more fusion points to evolve`, 'error')
     }
-  }, [selectedSacrifices])
+  }, [selectedSacrifices, totalFusionPoints, showToast])
 
-  const canFuse = selectedSacrifices.length > 0 && currentFusionLevel < maxFusionLevel && !isLoading
+  const canFuse = selectedSacrifices.length > 0 && totalFusionPoints >= 10 && !isLoading
 
-  // Simulate progress animation when selections change
+  // Handle fusion success
   useEffect(() => {
-    if (selectedSacrifices.length > 0) {
-      setSimulatedProgress(0)
-      const timer = setTimeout(() => {
-        setSimulatedProgress(selectedSacrifices.length)
-      }, 300)
-      return () => clearTimeout(timer)
-    } else {
-      setSimulatedProgress(0)
+    if (isSuccess) {
+      if (onFusionComplete) {
+        onFusionComplete(targetCard, selectedSacrifices)
+      }
+      // Close the popup after successful fusion
+      setTimeout(() => {
+        onClose()
+      }, 2000)
     }
-  }, [selectedSacrifices.length])
+  }, [isSuccess, onFusionComplete, targetCard, selectedSacrifices, onClose])
+
+  // Reset error when popup opens
+  useEffect(() => {
+    resetError()
+  }, [resetError])
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 md:p-4">
@@ -125,7 +147,7 @@ export function FusionPopup({
             </div>
             <div>
               <h2 className="text-xl md:text-2xl font-bold text-white mb-1">Monster Fusion</h2>
-              <p className="text-white/70 text-sm md:text-base">Combine monsters to increase fusion level ({currentFusionLevel}/{maxFusionLevel})</p>
+              <p className="text-white/70 text-sm md:text-base">Evolve monsters using fusion points ({totalFusionPoints >= 10 ? '✓' : totalFusionPoints}/10 points needed)</p>
             </div>
           </div>
           <button
@@ -209,40 +231,35 @@ export function FusionPopup({
                 {/* Compact Fusion Progress */}
                 <div className="glass-panel rounded-lg p-3 bg-white/5 border border-white/20">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-white/80 text-xs">Progress</span>
+                    <span className="text-white/80 text-xs">Fusion Points</span>
                     <div className="flex items-center gap-1">
-                      <span className="text-white/60 text-xs">{currentFusionLevel}</span>
-                      {selectedSacrifices.length > 0 && (
-                        <>
-                          <span className="text-white/60 text-xs">→</span>
-                          <span className="text-green-400 font-bold text-xs">{projectedFusionLevel}</span>
-                        </>
+                      <span className={`font-bold text-xs ${totalFusionPoints >= 10 ? 'text-green-400' : 'text-white/60'}`}>
+                        {totalFusionPoints}/10
+                      </span>
+                      {totalFusionPoints >= 10 && (
+                        <Check className="w-3 h-3 text-green-400" />
                       )}
-                      <span className="text-white/60 text-xs">/{maxFusionLevel}</span>
                     </div>
                   </div>
                   <div className="w-full bg-gray-700/50 rounded-full h-2 relative">
-                    {/* Current level */}
                     <div 
-                      className="bg-gradient-to-r from-blue-400 to-purple-400 h-2 rounded-full transition-all duration-500"
-                      style={{ width: `${(currentFusionLevel / maxFusionLevel) * 100}%` }}
+                      className={`h-2 rounded-full transition-all duration-500 ${
+                        totalFusionPoints >= 10 
+                          ? 'bg-gradient-to-r from-green-400 to-cyan-400' 
+                          : 'bg-gradient-to-r from-blue-400 to-purple-400'
+                      }`}
+                      style={{ width: `${Math.min((totalFusionPoints / 10) * 100, 100)}%` }}
                     />
-                    {/* Projected level (preview) */}
-                    {selectedSacrifices.length > 0 && (
-                      <div 
-                        className="absolute top-0 bg-gradient-to-r from-green-400 to-cyan-400 h-2 rounded-full transition-all duration-500 opacity-70"
-                        style={{ 
-                          left: `${(currentFusionLevel / maxFusionLevel) * 100}%`,
-                          width: `${(selectedSacrifices.length / maxFusionLevel) * 100}%` 
-                        }}
-                      />
+                  </div>
+                  <div className="text-center mt-1">
+                    {totalFusionPoints >= 10 ? (
+                      <span className="text-green-400 text-xs font-bold">READY TO EVOLVE!</span>
+                    ) : (
+                      <span className="text-white/60 text-xs">
+                        Need {10 - totalFusionPoints} more points
+                      </span>
                     )}
                   </div>
-                  {currentFusionLevel >= maxFusionLevel && (
-                    <div className="text-center mt-1">
-                      <span className="text-yellow-400 text-xs font-bold">MAX LEVEL REACHED!</span>
-                    </div>
-                  )}
                 </div>
 
                 {/* Compact Benefits */}
@@ -252,32 +269,21 @@ export function FusionPopup({
                     Benefits
                   </h4>
                   <div className="grid grid-cols-1 gap-1 text-xs">
-                    <div className="flex justify-between text-white/80">
-                      <span>HP:</span>
-                      <span className="text-green-400">
-                        +{currentFusionLevel * 5}
-                        {selectedSacrifices.length > 0 && (
-                          <span className="text-green-300"> → +{projectedFusionLevel * 5}</span>
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-white/80">
-                      <span>ATK:</span>
-                      <span className="text-orange-400">
-                        +{currentFusionLevel * 3}
-                        {selectedSacrifices.length > 0 && (
-                          <span className="text-orange-300"> → +{projectedFusionLevel * 3}</span>
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-white/80">
-                      <span>DEF:</span>
-                      <span className="text-blue-400">
-                        +{currentFusionLevel * 2}
-                        {selectedSacrifices.length > 0 && (
-                          <span className="text-blue-300"> → +{projectedFusionLevel * 2}</span>
-                        )}
-                      </span>
+                    <div className="text-white/80 text-center">
+                      {totalFusionPoints >= 10 ? (
+                        <div className="text-green-400 font-bold">
+                          🌟 Evolution Ready! 🌟
+                          <br />
+                          <span className="text-xs">Your monster will gain evolution bonuses</span>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="text-blue-400">Fusion Points: {totalFusionPoints}/10</div>
+                          <div className="text-xs mt-1">
+                            Each monster provides its fusion level + 1 point
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -315,7 +321,7 @@ export function FusionPopup({
                 </div>
                 
                 <p className="text-white/70 text-xs">
-                  Select multiple <strong className="text-white">{targetCard.name}</strong> monsters to sacrifice (click to select/deselect)
+                  Select multiple <strong className="text-white">{targetCard.name}</strong> ({targetCard.type}) monsters to sacrifice (click to select/deselect)
                 </p>
               </div>
               
@@ -325,7 +331,7 @@ export function FusionPopup({
                     <div className="text-center">
                       <Flame className="w-10 h-10 mx-auto mb-3 opacity-50 text-red-400" />
                       <h4 className="text-base font-semibold mb-2">No Compatible Monsters</h4>
-                      <p className="text-xs">You need another <strong className="text-white">{targetCard.name}</strong> for fusion</p>
+                      <p className="text-xs">You need another <strong className="text-white">{targetCard.name}</strong> ({targetCard.type}) for fusion</p>
                     </div>
                   </div>
                 ) : (
@@ -365,12 +371,10 @@ export function FusionPopup({
                             </div>
                           )}
                           
-                          {/* Fusion level indicator */}
-                          {cardFusionLevel > 0 && (
-                            <div className="absolute top-1 left-1 bg-blue-500/80 text-white text-xs px-1 py-0.5 rounded font-bold z-10">
-                              L{cardFusionLevel}
-                            </div>
-                          )}
+                          {/* Fusion level indicator showing points it will provide */}
+                          <div className="absolute top-1 left-1 bg-blue-500/80 text-white text-xs px-1 py-0.5 rounded font-bold z-10">
+                            +{(cardFusionLevel || 0) + 1}
+                          </div>
                           
                           {/* Swap to target button */}
                           {onSwapTarget && !isSelected && !isDisabled && (
@@ -425,8 +429,10 @@ export function FusionPopup({
               >
                 <Merge className="w-5 h-5" />
                 {selectedSacrifices.length === 0 ? 'Select Monsters to Sacrifice' : 
-                 currentFusionLevel >= maxFusionLevel ? 'Fusion Level Maxed' : 
-                 `Fuse with ${selectedSacrifices.length} Monster${selectedSacrifices.length === 1 ? '' : 's'} (${currentFusionLevel} → ${projectedFusionLevel})`}
+                 totalFusionPoints < 10 ? `Need ${10 - totalFusionPoints} More Points (${totalFusionPoints}/10)` : 
+                 state === 'pending' ? 'Confirm in Wallet...' :
+                 state === 'confirming' ? 'Processing Evolution...' :
+                 `Evolve with ${totalFusionPoints} Fusion Points`}
               </button>
             </div>
           </div>

@@ -522,3 +522,159 @@
     transform: rotate(360deg) translateX(180px) rotate(-360deg);
   }
 }
+
+/* Toast animations - enhanced with movement transitions */
+.toast-slide-top {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Smooth movement when toasts shift positions */
+[data-sonner-toast] {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
+              opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Glass morphism for toasts */
+.glass-toast {
+  backdrop-filter: blur(12px);
+  background: rgba(15, 23, 42, 0.9);
+  border: 2px solid rgba(71, 85, 105, 0.6);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.05) inset;
+}
+
+/* Toast border variations */
+.toast-success {
+  border-color: rgba(34, 197, 94, 0.8) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 20px rgba(34, 197, 94, 0.1), 0 1px 0 rgba(255, 255, 255, 0.05) inset !important;
+}
+
+.toast-error {
+  border-color: rgba(239, 68, 68, 0.8) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 20px rgba(239, 68, 68, 0.1), 0 1px 0 rgba(255, 255, 255, 0.05) inset !important;
+}
+
+.toast-warning {
+  border-color: rgba(245, 158, 11, 0.8) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 20px rgba(245, 158, 11, 0.1), 0 1px 0 rgba(255, 255, 255, 0.05) inset !important;
+}
+
+.toast-info {
+  border-color: rgba(100, 116, 139, 0.8) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 20px rgba(100, 116, 139, 0.05), 0 1px 0 rgba(255, 255, 255, 0.05) inset !important;
+}
+
+.toast-loading {
+  border-color: rgba(59, 130, 246, 0.8) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 20px rgba(59, 130, 246, 0.1), 0 1px 0 rgba(255, 255, 255, 0.05) inset !important;
+}
+
+/* Animated status icons for transactions */
+.tx-status-pending {
+  color: #3b82f6;
+  animation: spin 2s linear infinite;
+}
+
+.tx-status-success {
+  color: #22c55e;
+  animation: checkmark-bounce 0.5s ease-out;
+}
+
+.tx-status-error {
+  color: #ef4444;
+  animation: error-shake 0.5s ease-out;
+}
+
+.tx-explorer-icon {
+  color: #94a3b8;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.tx-explorer-icon:hover {
+  color: #3b82f6;
+  transform: scale(1.1);
+}
+
+/* Status icon animations */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes checkmark-bounce {
+  0% { transform: scale(0.8); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+@keyframes error-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+
+/* Compact transaction layout */
+.tx-toast-compact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px !important;
+  min-height: 36px !important;
+}
+
+/* Let Sonner handle the natural stacking behavior */
+[data-sonner-toaster] {
+  --normal-bg: transparent;
+  --normal-border: transparent;
+  --normal-text: white;
+}
+
+/* Enhanced toast animations for all toasts */
+[data-sonner-toast] {
+  animation: toastSlideInFromTop 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+/* Enhanced slide in animation */
+@keyframes toastSlideInFromTop {
+  0% {
+    opacity: 0;
+    transform: translateY(-60px) scale(0.9);
+  }
+  60% {
+    opacity: 0.8;
+    transform: translateY(-5px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Enhanced slide out to left for all toasts */
+[data-sonner-toast][data-removed="true"] {
+  animation: toastSlideOutToLeft 0.4s cubic-bezier(0.4, 0, 1, 1) forwards !important;
+}
+
+@keyframes toastSlideOutToLeft {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-120%) scale(0.9);
+  }
+}
+
+/* Override Sonner stacking to show 5 individual toasts before stacking */
+[data-sonner-toaster] [data-sonner-toast]:nth-child(-n+5) {
+  position: relative !important;
+  margin-bottom: 8px !important;
+  /* Let animations work naturally */
+}
+
+/* Apply stacking only after 5 toasts */
+[data-sonner-toaster] [data-sonner-toast]:nth-child(n+6) {
+  position: absolute !important;
+  top: calc(40px * 4 + 32px) !important; /* Position after 5th toast */
+}

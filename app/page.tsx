@@ -21,6 +21,7 @@ import type { PokemonCard } from "@/types/card"
 import { Button } from "@/components/ui/button"
 import { monadTestnet } from "@/lib/web3-config"
 import { useNadmonNFTs } from "@/hooks/use-nadmon-nfts"
+import { ToastDemo } from "@/components/toast-demo"
 
 type ActivePopup = "inventory" | "shop" | "battleground" | "web3demo" | null
 
@@ -231,7 +232,7 @@ export default function GachaGame() {
       />
 
       {/* Debug Toggle - Top Left */}
-      <div className="absolute top-4 left-4 z-40">
+      <div className="absolute top-4 left-4 z-40 space-x-2">
         <Button
           onClick={() => openPopup("web3demo")}
           variant="outline"
@@ -240,6 +241,13 @@ export default function GachaGame() {
         >
           Debug
         </Button>
+      </div>
+
+      {/* Toast Demo - Top Left Below Debug */}
+      <div className="absolute top-16 left-4 z-40">
+        <div className="glass-panel p-2 rounded">
+          <ToastDemo />
+        </div>
       </div>
 
       {/* Wallet Handle - Top Right */}

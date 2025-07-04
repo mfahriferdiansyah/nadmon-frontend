@@ -138,7 +138,7 @@ export class TransactionToastManager {
       title,
       description,
       txHash,
-      blockExplorerUrl: 'https://testnet.monadexplorer.com'
+      blockExplorerUrl: 'https://testnet.monvision.io'
     })
   }
 
@@ -150,7 +150,7 @@ export class TransactionToastManager {
       title,
       description,
       txHash,
-      blockExplorerUrl: 'https://testnet.monadexplorer.com'
+      blockExplorerUrl: 'https://testnet.monvision.io'
     })
   }
 
@@ -161,7 +161,7 @@ export class TransactionToastManager {
       status: 'loading',
       title,
       description,
-      blockExplorerUrl: 'https://testnet.monadexplorer.com'
+      blockExplorerUrl: 'https://testnet.monvision.io'
     })
   }
 
@@ -173,7 +173,7 @@ export class TransactionToastManager {
       title,
       description,
       txHash,
-      blockExplorerUrl: 'https://testnet.monadexplorer.com'
+      blockExplorerUrl: 'https://testnet.monvision.io'
     })
   }
 } 

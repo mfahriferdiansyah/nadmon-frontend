@@ -19,7 +19,7 @@ interface InventoryPopupProps {
   isLoading?: boolean
   error?: string | null
   onRefresh?: () => void
-  onFusion?: (targetCard: PokemonCard, sacrificeCards: PokemonCard[]) => void
+  onFusionComplete?: (targetCard: PokemonCard, sacrificeCards: PokemonCard[]) => void
 }
 
 export function InventoryPopup({
@@ -33,7 +33,7 @@ export function InventoryPopup({
   isLoading = false,
   error,
   onRefresh,
-  onFusion,
+  onFusionComplete,
 }: InventoryPopupProps) {
   const [fusionTarget, setFusionTarget] = useState<PokemonCard | null>(null)
   const handleEquipCard = (card: PokemonCard) => {
@@ -55,8 +55,8 @@ export function InventoryPopup({
   }
 
   const handleFusionComplete = (targetCard: PokemonCard, sacrificeCards: PokemonCard[]) => {
-    if (onFusion) {
-      onFusion(targetCard, sacrificeCards)
+    if (onFusionComplete) {
+      onFusionComplete(targetCard, sacrificeCards)
     }
     setFusionTarget(null)
   }
@@ -322,7 +322,7 @@ export function InventoryPopup({
           targetCard={fusionTarget}
           collection={collection}
           onClose={handleCloseFusion}
-          onFusion={handleFusionComplete}
+          onFusionComplete={handleFusionComplete}
           onSwapTarget={setFusionTarget}
         />
       )}
