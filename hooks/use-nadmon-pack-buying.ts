@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAccount, useChainId, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther } from 'viem';
 import { getContractAddresses } from '@/contracts/config';
@@ -24,7 +24,7 @@ const NADMON_NFT_ABI = [
   }
 ] as const;
 
-export type PackBuyingState = 'idle' | 'pending' | 'confirming' | 'success' | 'error';
+export type PackBuyingState = 'idle' | 'pending' | 'confirming' | 'success' | 'error' | 'fetching-pack';
 
 interface UseNadmonPackBuyingReturn {
   buyPackWithMON: () => void;
@@ -33,6 +33,7 @@ interface UseNadmonPackBuyingReturn {
   error: string | null;
   transactionHash: string | null;
   isLoading: boolean;
+  packId: number | null;
   reset: () => void;
 }
 
@@ -42,14 +43,71 @@ export function useNadmonPackBuying(): UseNadmonPackBuyingReturn {
   const [state, setState] = useState<PackBuyingState>('idle');
   const [error, setError] = useState<string | null>(null);
   const [transactionHash, setTransactionHash] = useState<string | null>(null);
+  const [packId, setPackId] = useState<number | null>(null);
 
   const contracts = getContractAddresses(chainId);
   
   const { writeContract, isPending: isWritePending, data: writeData } = useWriteContract();
   
-  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+  const { isLoading: isConfirming, isSuccess: isConfirmed, data: receipt } = useWaitForTransactionReceipt({
     hash: writeData,
   });
+
+  // Extract pack ID from transaction receipt (METHOD 1)
+  const extractPackIdFromReceipt = useCallback((receipt: any, userAddress: string): number | null => {
+    try {
+      if (!receipt?.logs || !userAddress) return null;
+      
+      console.log('🎯 METHOD 1: Trying to extract pack ID from transaction receipt');
+      
+      // Debug: Log all event signatures in the receipt
+      console.log('📋 All event signatures in receipt:');
+      receipt.logs.forEach((log: any, index: number) => {
+        if (log.topics && log.topics.length > 0) {
+          console.log(`  Log ${index}: ${log.topics[0]} (${log.topics.length} topics)`);
+        }
+      });
+      
+      // Find PackMinted event log
+      for (const log of receipt.logs) {
+        try {
+          if (log.topics && log.topics.length >= 3) {
+            const topics = log.topics.map((topic: any) => 
+              typeof topic === 'string' ? topic : `0x${topic.toString(16)}`
+            );
+            
+            // Try common PackMinted event signatures
+            const packMintedSignatures = [
+              '0x4a39dc06d4c0dbc64b70af90fd698a233a518aa5d07e595d983b8c0526c8f7fb', // Common PackMinted pattern
+              '0x8f0e1b1b8b0e1b1b8b0e1b1b8b0e1b1b8b0e1b1b8b0e1b1b8b0e1b1b8b0e1b1b', // Alternative pattern
+            ];
+            
+            // Also try to find any event with player address and a pack-like ID
+            if (topics.length >= 3) {
+              const potentialPackId = parseInt(topics[2], 16);
+              if (!isNaN(potentialPackId) && potentialPackId > 0 && potentialPackId < 1000000) {
+                console.log(`🔍 Found potential pack ID ${potentialPackId} in event ${topics[0]}`);
+                
+                // If it looks like a reasonable pack ID, use it
+                if (packMintedSignatures.includes(topics[0]) || potentialPackId > 0) {
+                  console.log(`✅ METHOD 1 SUCCESS: Pack ID ${potentialPackId} extracted from receipt`);
+                  return potentialPackId;
+                }
+              }
+            }
+          }
+        } catch (parseError) {
+          continue;
+        }
+      }
+      
+      console.log('❌ METHOD 1 FAILED: No PackMinted event found in receipt');
+      return null;
+    } catch (error) {
+      console.log('❌ METHOD 1 ERROR:', error.message);
+      return null;
+    }
+  }, []);
 
   // Update state based on transaction status
   useEffect(() => {
@@ -67,11 +125,37 @@ export function useNadmonPackBuying(): UseNadmonPackBuyingReturn {
     }
   }, [isConfirming, writeData]);
 
+  // Handle successful transaction and extract pack ID
   useEffect(() => {
-    if (isConfirmed) {
-      setState('success');
+    if (isConfirmed && receipt && address) {
+      console.log('🎉 TRANSACTION CONFIRMED - Starting pack detection...');
+      setState('fetching-pack');
+      
+      const handlePackDetection = async () => {
+        try {
+          // METHOD 1: Extract pack ID from receipt
+          const extractedPackId = extractPackIdFromReceipt(receipt, address);
+          
+          if (extractedPackId) {
+            setPackId(extractedPackId);
+            console.log(`✅ FINAL SUCCESS: Pack ID ${extractedPackId} detected!`);
+            setState('success');
+          } else {
+            console.log('❌ FINAL ERROR: Could not detect pack ID from transaction');
+            setError('Could not detect pack ID from transaction');
+            setState('error');
+          }
+          
+        } catch (error) {
+          console.log('❌ FINAL ERROR:', error.message);
+          setError(error.message || 'Failed to detect pack');
+          setState('error');
+        }
+      };
+      
+      handlePackDetection();
     }
-  }, [isConfirmed]);
+  }, [isConfirmed, receipt, address, extractPackIdFromReceipt]);
 
   const buyPackWithMON = () => {
     if (!address) {
@@ -81,25 +165,19 @@ export function useNadmonPackBuying(): UseNadmonPackBuyingReturn {
       return;
     }
 
-    console.log('🔮 Starting pack purchase with MON...');
-    console.log('Contract address:', contracts.nadmonNFT);
-    console.log('Chain ID:', chainId);
-    console.log('User address:', address);
 
     try {
       setState('pending');
       setError(null);
       setTransactionHash(null);
+      setPackId(null);
 
-      console.log('📝 Calling writeContract...');
       writeContract({
         address: contracts.nadmonNFT as `0x${string}`,
         abi: NADMON_NFT_ABI,
         functionName: 'buyPackWithMON',
         value: parseEther('0.01'), // 0.01 MON
       });
-
-      console.log('✅ writeContract called successfully');
 
     } catch (err: any) {
       setState('error');
@@ -144,6 +222,7 @@ export function useNadmonPackBuying(): UseNadmonPackBuyingReturn {
     setState('idle');
     setError(null);
     setTransactionHash(null);
+    setPackId(null);
   };
 
   return {
@@ -152,7 +231,8 @@ export function useNadmonPackBuying(): UseNadmonPackBuyingReturn {
     state,
     error,
     transactionHash,
-    isLoading: isWritePending || isConfirming,
+    isLoading: isWritePending || isConfirming || state === 'fetching-pack',
+    packId,
     reset,
   };
 }

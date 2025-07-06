@@ -17,7 +17,7 @@ interface ShopPopupProps {
   onPackSelect: (packType: PackType, event: React.MouseEvent) => void
   isOpening: boolean
   onClose: () => void
-  onPackPurchased?: () => void
+  onPackPurchased?: (packId?: number) => void
 }
 
 type ShopCategory = 'pack' | 'stone' | 'building' | 'costume'
@@ -54,7 +54,7 @@ export function ShopPopup({
   // Wallet and contract hooks
   const { isConnected } = useAccount()
   const chainId = useChainId()
-  const { buyPackWithMON, buyPackWithCookies, state, error, isLoading, reset } = useNadmonPackBuying()
+  const { buyPackWithMON, buyPackWithCookies, state, error, isLoading, packId, reset } = useNadmonPackBuying()
   
   const isOnCorrectChain = chainId === monadTestnet.id
   const canPurchase = isConnected && isOnCorrectChain && !isLoading && !isOpening && selectedPack && !selectedPack.locked
@@ -112,6 +112,12 @@ export function ShopPopup({
         title: 'Transaction Pending',
         description: 'Waiting for blockchain confirmation',
       })
+    } else if (state === 'fetching-pack') {
+      TransactionToastManager.update(currentToastId, {
+        status: 'pending',
+        title: 'Detecting Pack',
+        description: 'Extracting pack ID from transaction...',
+      })
     } else if (state === 'success') {
       TransactionToastManager.update(currentToastId, {
         status: 'success',
@@ -134,7 +140,7 @@ export function ShopPopup({
           } as any
           
           onPackSelect(selectedPack, mockEvent)
-          onPackPurchased?.()
+          onPackPurchased?.(packId || undefined)
           reset()
           setCurrentToastId(null)
         }

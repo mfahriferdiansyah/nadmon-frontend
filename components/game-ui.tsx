@@ -82,17 +82,14 @@ export function GameUI({
       toast.warning('Equip monsters to unlock battle')
       return
     }
-    toast.info('Entering battle arena')
     onOpenBattleground()
   }
 
   const handleInventoryClick = () => {
-    toast.info('Opening inventory')
     onOpenInventory()
   }
 
   const handleShopClick = () => {
-    toast.info('Opening shop')
     onOpenShop()
   }
 

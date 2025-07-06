@@ -15,9 +15,6 @@ export function ToastDemo() {
       toast.warning('Low MON balance detected')
     }, 600)
     
-    setTimeout(() => {
-      toast.info('Pack purchase ready')
-    }, 900)
     
     setTimeout(() => {
       const loadingId = toast.loading('Processing transaction')

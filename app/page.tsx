@@ -20,8 +20,9 @@ import type { PackType } from "@/constants/packs"
 import type { PokemonCard } from "@/types/card"
 import { Button } from "@/components/ui/button"
 import { monadTestnet } from "@/lib/web3-config"
-import { useNadmonNFTs } from "@/hooks/use-nadmon-nfts"
+import { useNadmonNFTsAPI as useNadmonNFTs } from "@/hooks/use-nadmon-nfts-api"
 import { ToastDemo } from "@/components/toast-demo"
+import { API_CONFIG, apiRequestWithRetry } from "@/lib/api-config"
 
 type ActivePopup = "inventory" | "shop" | "battleground" | "web3demo" | null
 
@@ -35,7 +36,7 @@ export default function GachaGame() {
   const isOnCorrectChain = chainId === monadTestnet.id
   const shouldShowWalletPopup = !isConnected || !isOnCorrectChain || showWalletPopup
 
-  // NFT data from blockchain
+  // NFT data from API (much faster!)
   const { nfts: realNFTs, loading: nftsLoading, error: nftsError, refetch: refetchNFTs } = useNadmonNFTs()
 
   // Popup states
@@ -61,9 +62,55 @@ export default function GachaGame() {
   const [packPosition, setPackPosition] = useState({ x: 0, y: 0 })
   const [showFocusedSession, setShowFocusedSession] = useState(false)
   
-  // Track NFTs before purchase to identify newly minted ones
+  // Track NFTs before purchase to identify newly minted ones (fallback method)
   const [nftCountBeforePurchase, setNftCountBeforePurchase] = useState<number>(0)
   const [isWaitingForNewNFTs, setIsWaitingForNewNFTs] = useState(false)
+  
+  // Track pack ID for METHOD 1 (preferred)
+  const [purchasedPackId, setPurchasedPackId] = useState<number | null>(null)
+  
+  // Track when we're in pack purchase mode to pause auto-polling
+  const [isInPackPurchaseMode, setIsInPackPurchaseMode] = useState(false)
+
+  // Fetch NFTs by pack ID from API
+  const fetchPackNFTs = async (packId: number): Promise<PokemonCard[]> => {
+    try {
+      console.log(`🎁 Fetching NFTs for pack ID: ${packId}`)
+      
+      const data = await apiRequestWithRetry(
+        API_CONFIG.ENDPOINTS.PACK_DETAILS(packId),
+        {},
+        5 // More retries since indexing may take time
+      )
+      
+      console.log(`✅ Pack API response:`, data)
+      
+      if (data.nfts && data.nfts.length > 0) {
+        // Transform backend NFTs to frontend format
+        const transformedNFTs = data.nfts.map((nft: any): PokemonCard => ({
+          id: nft.id || nft.token_id,
+          name: nft.name || nft.nadmon_type,
+          image: nft.image,
+          hp: nft.hp,
+          attack: nft.attack,
+          defense: nft.defense,
+          speed: nft.speed || Math.floor((nft.hp + nft.attack + nft.defense) / 10),
+          type: nft.type || nft.element,
+          rarity: (nft.rarity?.toLowerCase() || 'common') as 'common' | 'rare' | 'epic' | 'legendary',
+          critical: nft.critical || nft.crit,
+          color: nft.color || '#6c757d',
+        }))
+        
+        console.log(`🎯 Successfully transformed ${transformedNFTs.length} NFTs from pack ${packId}`)
+        return transformedNFTs
+      }
+      
+      throw new Error('No NFTs found in pack')
+    } catch (error) {
+      console.error(`❌ Failed to fetch pack ${packId}:`, error)
+      throw error
+    }
+  }
 
   // Wallet popup handlers
   const handleWalletPopupClose = () => {
@@ -110,24 +157,49 @@ export default function GachaGame() {
     setIsOpening(true)
   }
 
-  const handlePackOpenComplete = () => {
-    if (isWaitingForNewNFTs) {
-      // We're waiting for new NFTs from a purchase, try to find them
+  const handlePackOpenComplete = async () => {
+    // If we're in pack purchase mode, METHOD 1 has already handled everything
+    if (isInPackPurchaseMode) {
+      console.log('🚫 Skipping pack opening animation - METHOD 1 already handled pack purchase')
+      setIsOpening(false)
+      return
+    }
+    
+    if (purchasedPackId) {
+      // METHOD 1: We have the exact pack ID! Fetch real NFTs from API
+      console.log(`🎯 Using METHOD 1: Fetching NFTs for pack ID ${purchasedPackId}`)
+      
+      try {
+        const packNFTs = await fetchPackNFTs(purchasedPackId)
+        console.log(`✅ SUCCESS: Loaded ${packNFTs.length} real NFTs from pack ${purchasedPackId}`)
+        setCurrentCards(packNFTs)
+        setPurchasedPackId(null) // Clear pack ID after use
+      } catch (error) {
+        console.error(`❌ Failed to fetch pack NFTs, falling back to recent NFTs`)
+        // Fallback to most recent NFTs if API call fails
+        if (realNFTs.length >= 5) {
+          setCurrentCards(realNFTs.slice(-5))
+        } else {
+          setCurrentCards(generateRandomCards(MOCK_CARDS, 5))
+        }
+      }
+      
+      setIsWaitingForNewNFTs(false)
+    } else if (isWaitingForNewNFTs) {
+      // Fallback method: Try to detect new NFTs by inventory comparison
+      console.log('⚠️ Using FALLBACK: Comparing inventory before/after purchase')
       const newNFTs = realNFTs.slice(nftCountBeforePurchase)
       
       if (newNFTs.length >= 5) {
-        // We found the new NFTs! Use them for the pack opening
         console.log('✅ Found newly minted NFTs:', newNFTs.slice(0, 5))
         setCurrentCards(newNFTs.slice(0, 5))
         setIsWaitingForNewNFTs(false)
       } else if (newNFTs.length > 0) {
-        // Some NFTs found but not all 5 yet, use what we have and fill with the newest ones
         const allAvailable = [...newNFTs, ...realNFTs.slice(-5)].slice(0, 5)
         console.log('⚠️ Found some new NFTs, using most recent ones:', allAvailable)
         setCurrentCards(allAvailable)
         setIsWaitingForNewNFTs(false)
       } else {
-        // No new NFTs found yet, fall back to most recent NFTs or mock cards
         if (realNFTs.length >= 5) {
           console.log('⚠️ No new NFTs detected yet, using most recent ones:', realNFTs.slice(-5))
           setCurrentCards(realNFTs.slice(-5))
@@ -139,6 +211,7 @@ export default function GachaGame() {
       }
     } else {
       // Regular pack opening (not from purchase), use mock cards
+      console.log('📦 Regular pack opening - using mock cards')
       const newCards = generateRandomCards(MOCK_CARDS, 5)
       setCurrentCards(newCards)
     }
@@ -147,27 +220,59 @@ export default function GachaGame() {
     setShowFocusedSession(true)
   }
 
-  // Handle pack purchase - track NFT count before purchase
-  const handlePackPurchased = () => {
-    setNftCountBeforePurchase(realNFTs?.length || 0)
-    setIsWaitingForNewNFTs(true)
+  // Handle pack purchase with pack ID from Method 1
+  const handlePackPurchased = async (packId?: number) => {
+    console.log(`✅ Pack purchased with ID: ${packId}`)
     
-    // Refresh NFTs after successful purchase with multiple attempts
-    if (isConnected && isOnCorrectChain) {
-      // First refetch after 2 seconds
-      setTimeout(() => {
-        refetchNFTs()
-      }, 2000)
+    if (packId) {
+      // METHOD 1: We have the exact pack ID! Fetch NFTs directly and skip animation
+      console.log(`🎯 METHOD 1 SUCCESS: Fetching NFTs directly for pack ID ${packId}`)
+      setIsInPackPurchaseMode(true)
       
-      // Second refetch after 5 seconds in case the first one was too early
-      setTimeout(() => {
-        refetchNFTs()
-      }, 5000)
+      try {
+        const packNFTs = await fetchPackNFTs(packId)
+        console.log(`✅ SUCCESS: Loaded ${packNFTs.length} real NFTs from pack ${packId}`)
+        
+        // Set the cards and go directly to the focused session (skip pack animation)
+        setCurrentCards(packNFTs)
+        setShowFocusedSession(true)
+        
+        // Don't trigger pack opening animation for purchased packs
+        setIsOpening(false)
+        setPurchasedPackId(null)
+        setIsWaitingForNewNFTs(false)
+        setIsInPackPurchaseMode(false)
+        
+        // Refresh inventory after pack opening is complete
+        setTimeout(() => {
+          refetchNFTs()
+        }, 3000)
+        
+      } catch (error) {
+        console.error(`❌ Failed to fetch pack NFTs, falling back to regular flow`)
+        // If API fails, fall back to the regular pack opening flow
+        setPurchasedPackId(packId)
+        setIsWaitingForNewNFTs(false)
+        setIsInPackPurchaseMode(false)
+      }
+    } else {
+      // Fallback: if pack ID wasn't detected, use the old method
+      console.log('⚠️ No pack ID provided, falling back to NFT count tracking')
+      setPurchasedPackId(null)
+      setNftCountBeforePurchase(realNFTs?.length || 0)
+      setIsWaitingForNewNFTs(true)
+      setIsInPackPurchaseMode(false)
       
-      // Third refetch after 8 seconds for extra safety
-      setTimeout(() => {
-        refetchNFTs()
-      }, 8000)
+      // Still refresh inventory for fallback method
+      if (isConnected && isOnCorrectChain) {
+        setTimeout(() => {
+          refetchNFTs()
+        }, 2000)
+        
+        setTimeout(() => {
+          refetchNFTs()
+        }, 5000)
+      }
     }
   }
 
