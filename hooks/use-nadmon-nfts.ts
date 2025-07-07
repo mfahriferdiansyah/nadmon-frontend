@@ -126,6 +126,7 @@ function transformNadmonToPokemonCard(tokenId: number, nadmonData: NadmonData): 
     rarity: mappedRarity,
     critical: Number(nadmonData.crit) || 30,
     color: getElementColor(nadmonData.element),
+    fusion: Number(nadmonData.fusion) || 0,
   }
 }
 

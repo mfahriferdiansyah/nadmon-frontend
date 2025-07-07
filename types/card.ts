@@ -11,6 +11,7 @@ export interface PokemonCard {
   critical: number
   color: string
   fusion?: number // Fusion level (0-10)
+  evo?: number // Evolution level (generation)
 }
 
 export interface PackOpeningAnimationProps {

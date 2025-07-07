@@ -11,20 +11,20 @@ import { BattlegroundPopup } from "@/components/battleground-popup"
 import { UnderDevelopmentOverlay } from "@/components/under-development-overlay"
 import { PackOpeningAnimation } from "@/components/pack-opening-animation"
 import { FocusedCardSession } from "@/components/focused-card-session"
-import { GameDemo } from "@/components/game-demo"
 import { WalletConnectionPopup } from "@/components/wallet-connection-popup"
 import { WalletHandle } from "@/components/wallet-handle"
+import { GameLandingPopup } from "@/components/game-landing-popup"
+import { GameInstructionsPopup } from "@/components/game-instructions-popup"
 import { generateRandomCards } from "@/utils/card-utils"
 import { MOCK_CARDS } from "@/constants/cards"
 import type { PackType } from "@/constants/packs"
 import type { PokemonCard } from "@/types/card"
-import { Button } from "@/components/ui/button"
 import { monadTestnet } from "@/lib/web3-config"
 import { useNadmonNFTsAPI as useNadmonNFTs } from "@/hooks/use-nadmon-nfts-api"
-import { ToastDemo } from "@/components/toast-demo"
+import { useNadmonPackBuying } from "@/hooks/use-nadmon-pack-buying"
 import { API_CONFIG, apiRequestWithRetry } from "@/lib/api-config"
 
-type ActivePopup = "inventory" | "shop" | "battleground" | "web3demo" | null
+type ActivePopup = "inventory" | "shop" | "battleground" | null
 
 export default function GachaGame() {
   // Wallet connection state
@@ -34,10 +34,22 @@ export default function GachaGame() {
   
   // Check if user is on the correct chain
   const isOnCorrectChain = chainId === monadTestnet.id
-  const shouldShowWalletPopup = !isConnected || !isOnCorrectChain || showWalletPopup
+  
+  // Landing popup state
+  const [showLandingPopup, setShowLandingPopup] = useState(true)
+  const [hasEnteredGame, setHasEnteredGame] = useState(false)
+  
+  // Instructions popup state
+  const [showInstructionsPopup, setShowInstructionsPopup] = useState(false)
+  
+  // Disable old wallet popup when using new onboarding
+  const shouldShowWalletPopup = hasEnteredGame && (!isConnected || !isOnCorrectChain || showWalletPopup)
 
   // NFT data from API (much faster!)
   const { nfts: realNFTs, loading: nftsLoading, error: nftsError, refetch: refetchNFTs } = useNadmonNFTs()
+  
+  // Pack buying hook for "Open Another" functionality
+  const { buyPackWithMON, buyPackWithCookies, state: packBuyingState, error: packBuyingError, isLoading: packBuyingLoading, packId: newPackId, reset: resetPackBuying } = useNadmonPackBuying()
 
   // Popup states
   const [activePopup, setActivePopup] = useState<ActivePopup>(null)
@@ -55,6 +67,50 @@ export default function GachaGame() {
     }
   }, [collection.length])
 
+  // Update equipped cards when collection updates (to reflect evolved stats)
+  useEffect(() => {
+    if (collection.length > 0 && equippedCards.length > 0) {
+      console.log('🔄 Syncing equipped cards with collection update')
+      console.log('Collection length:', collection.length)
+      console.log('Equipped cards before sync:', equippedCards.map(c => `${c.name} (ID: ${c.id}, Fusion: ${c.fusion || 0})`))
+      
+      setEquippedCards(prev => {
+        const updated = prev.map(equippedCard => {
+          // Find the updated version of this card in the collection
+          const updatedCard = collection.find(card => card.id === equippedCard.id)
+          if (updatedCard && (updatedCard.fusion !== equippedCard.fusion || updatedCard.hp !== equippedCard.hp)) {
+            console.log(`📈 Updating equipped card ${equippedCard.name} (ID: ${equippedCard.id}): fusion ${equippedCard.fusion || 0} → ${updatedCard.fusion || 0}`)
+          }
+          return updatedCard || equippedCard // Use updated version if found, otherwise keep original
+        }).filter(card => {
+          // Remove cards that no longer exist in collection (burned in fusion)
+          const exists = collection.some(collectionCard => collectionCard.id === card.id)
+          if (!exists) {
+            console.log(`🔥 Removing burned card from equipped: ${card.name} (ID: ${card.id})`)
+          }
+          return exists
+        })
+        
+        console.log('Equipped cards after sync:', updated.map(c => `${c.name} (ID: ${c.id}, Fusion: ${c.fusion || 0})`))
+        return updated
+      })
+    }
+  }, [collection])
+
+  // Handle "Open Another" pack purchase completion
+  useEffect(() => {
+    if (packBuyingState === 'success' && newPackId) {
+      console.log('🎉 "Open Another" pack purchase successful, pack ID:', newPackId)
+      // Trigger pack opening with the new pack ID
+      handlePackPurchased(newPackId)
+      // Reset pack buying state
+      resetPackBuying()
+    } else if (packBuyingState === 'error' && packBuyingError) {
+      console.error('❌ "Open Another" pack purchase failed:', packBuyingError)
+      // Could show error toast here if needed
+    }
+  }, [packBuyingState, newPackId, packBuyingError])
+
   // Shop states
   const [currentCards, setCurrentCards] = useState<PokemonCard[]>([])
   const [isOpening, setIsOpening] = useState(false)
@@ -71,6 +127,9 @@ export default function GachaGame() {
   
   // Track when we're in pack purchase mode to pause auto-polling
   const [isInPackPurchaseMode, setIsInPackPurchaseMode] = useState(false)
+  
+  // Track last payment method used for "Open Another" functionality
+  const [lastPaymentMethod, setLastPaymentMethod] = useState<'MON' | 'COOKIES' | null>(null)
 
   // Fetch NFTs by pack ID from API
   const fetchPackNFTs = async (packId: number): Promise<PokemonCard[]> => {
@@ -99,6 +158,8 @@ export default function GachaGame() {
           rarity: (nft.rarity?.toLowerCase() || 'common') as 'common' | 'rare' | 'epic' | 'legendary',
           critical: nft.critical || nft.crit,
           color: nft.color || '#6c757d',
+          fusion: nft.fusion || 0,
+          evo: nft.evo || 1,
         }))
         
         console.log(`🎯 Successfully transformed ${transformedNFTs.length} NFTs from pack ${packId}`)
@@ -221,7 +282,11 @@ export default function GachaGame() {
   }
 
   // Handle pack purchase with pack ID from Method 1
-  const handlePackPurchased = async (packId?: number) => {
+  const handlePackPurchased = async (packId?: number, paymentMethod?: 'MON' | 'COOKIES') => {
+    // Save payment method for "Open Another" functionality
+    if (paymentMethod) {
+      setLastPaymentMethod(paymentMethod)
+    }
     console.log(`✅ Pack purchased with ID: ${packId}`)
     
     if (packId) {
@@ -276,12 +341,33 @@ export default function GachaGame() {
     }
   }
 
-  const handleOpenAnother = () => {
+  const handleOpenAnother = async () => {
     setShowFocusedSession(false)
     setCurrentCards([])
     
-    if (selectedPackType) {
-      setIsOpening(true)
+    if (selectedPackType && isConnected && isOnCorrectChain) {
+      // Use the same payment method as the last purchase, default to MON
+      const paymentMethod = lastPaymentMethod || 'MON'
+      
+      // Reset any previous pack buying state
+      resetPackBuying()
+      
+      try {
+        console.log(`🎁 "Open Another" using payment method: ${paymentMethod}`)
+        
+        if (paymentMethod === 'MON') {
+          await buyPackWithMON()
+        } else {
+          await buyPackWithCookies()
+        }
+      } catch (error) {
+        console.error('Pack purchase failed:', error)
+        // If purchase fails, fall back to opening shop
+        openPopup("shop")
+      }
+    } else {
+      // If not connected or wrong chain, open wallet popup
+      setShowWalletPopup(true)
     }
   }
 
@@ -317,6 +403,50 @@ export default function GachaGame() {
     closePopup()
   }
 
+  // Handle landing popup
+  const handleEnterGame = () => {
+    setShowLandingPopup(false)
+    setHasEnteredGame(true)
+  }
+
+  const handleCloseLanding = () => {
+    setShowLandingPopup(false)
+    setHasEnteredGame(true)
+  }
+
+  // Handle instructions popup
+  const handleOpenInstructions = () => {
+    setShowInstructionsPopup(true)
+  }
+
+  const handleCloseInstructions = () => {
+    setShowInstructionsPopup(false)
+  }
+
+  // Handle fusion completion
+  const handleFusionComplete = (targetCard: PokemonCard, sacrificeCards: PokemonCard[]) => {
+    console.log('🔥 Fusion completed:', targetCard, 'Sacrifices:', sacrificeCards)
+    
+    // Remove sacrificed cards from equipped cards if they were equipped
+    const sacrificeIds = sacrificeCards.map(card => card.id)
+    setEquippedCards(prev => prev.filter(card => !sacrificeIds.includes(card.id)))
+    
+    // Refresh NFT data immediately
+    refetchNFTs()
+    
+    // Refresh again after a delay to ensure blockchain data is indexed
+    setTimeout(() => {
+      console.log('🔄 Delayed refresh after fusion')
+      refetchNFTs()
+    }, 3000)
+    
+    // Another refresh after a longer delay for good measure
+    setTimeout(() => {
+      console.log('🔄 Final refresh after fusion')
+      refetchNFTs()
+    }, 8000)
+  }
+
   return (
     <div className="w-full h-screen overflow-hidden relative bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900">
       {/* Background */}
@@ -330,30 +460,13 @@ export default function GachaGame() {
         onOpenInventory={() => openPopup("inventory")}
         onOpenShop={() => openPopup("shop")}
         onOpenBattleground={() => openPopup("battleground")}
+        onOpenInstructions={handleOpenInstructions}
         equippedCardsCount={equippedCards.length}
         collectionCount={collection.length}
         equippedCards={equippedCards}
         onUnequipCard={handleUnequipCard}
       />
 
-      {/* Debug Toggle - Top Left */}
-      <div className="absolute top-4 left-4 z-40 space-x-2">
-        <Button
-          onClick={() => openPopup("web3demo")}
-          variant="outline"
-          size="sm"
-          className="glass-panel text-white border-white/20 hover:bg-white/10"
-        >
-          Debug
-        </Button>
-      </div>
-
-      {/* Toast Demo - Top Left Below Debug */}
-      <div className="absolute top-16 left-4 z-40">
-        <div className="glass-panel p-2 rounded">
-          <ToastDemo />
-        </div>
-      </div>
 
       {/* Wallet Handle - Top Right */}
       <div className="absolute top-4 right-4 z-40">
@@ -380,6 +493,7 @@ export default function GachaGame() {
           isLoading={nftsLoading}
           error={nftsError}
           onRefresh={refetchNFTs}
+          onFusionComplete={handleFusionComplete}
         />
       )}
 
@@ -400,21 +514,6 @@ export default function GachaGame() {
         />
       )}
 
-      {!shouldShowWalletPopup && activePopup === "web3demo" && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto relative">
-            <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
-              <h2 className="text-2xl font-bold">Web3 Integration Demo</h2>
-              <Button onClick={closePopup} variant="outline" size="sm">
-                Close
-              </Button>
-            </div>
-            <div className="p-6">
-              <GameDemo />
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Under Development Overlay - Higher z-index than battleground */}
       {showUnderDevelopment && (
@@ -441,6 +540,19 @@ export default function GachaGame() {
           selectedPackType={selectedPackType}
         />
       )}
+
+      {/* Game Landing Popup */}
+      <GameLandingPopup
+        isOpen={showLandingPopup}
+        onEnterGame={handleEnterGame}
+        onClose={handleCloseLanding}
+      />
+
+      {/* Game Instructions Popup */}
+      <GameInstructionsPopup
+        isOpen={showInstructionsPopup}
+        onClose={handleCloseInstructions}
+      />
     </div>
   )
 }

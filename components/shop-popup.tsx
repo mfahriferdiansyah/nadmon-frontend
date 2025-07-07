@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import type React from "react"
 import { X, Package, Star, Sparkles, Crown, Lock, ShoppingCart, Loader2, Gift, Wallet, AlertCircle } from "lucide-react"
+import Image from "next/image"
 import type { PokemonCard } from "@/types/card"
 import type { PackType } from "@/constants/packs"
 import { PACK_TYPES } from "@/constants/packs"
@@ -17,7 +18,7 @@ interface ShopPopupProps {
   onPackSelect: (packType: PackType, event: React.MouseEvent) => void
   isOpening: boolean
   onClose: () => void
-  onPackPurchased?: (packId?: number) => void
+  onPackPurchased?: (packId?: number, paymentMethod?: 'MON' | 'COOKIES') => void
 }
 
 type ShopCategory = 'pack' | 'stone' | 'building' | 'costume'
@@ -140,7 +141,7 @@ export function ShopPopup({
           } as any
           
           onPackSelect(selectedPack, mockEvent)
-          onPackPurchased?.(packId || undefined)
+          onPackPurchased?.(packId || undefined, paymentMethod)
           reset()
           setCurrentToastId(null)
         }
@@ -261,11 +262,14 @@ export function ShopPopup({
                     onClick={() => setPaymentMethod('MON')}
                     className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all ${
                       paymentMethod === 'MON'
-                        ? 'bg-blue-500 text-white border border-blue-400'
+                        ? 'bg-purple-500 text-white border border-purple-400'
                         : 'bg-white/10 text-white/70 hover:bg-white/20 border border-white/20'
                     }`}
                   >
-                    💎 {selectedPack.price.mon} MON
+                    <div className="flex items-center justify-center gap-1.5">
+                      <Image src="/token/mon.png" alt="MON" width={14} height={14} className="w-3.5 h-3.5" />
+                      {selectedPack.price.mon} MON
+                    </div>
                   </button>
                   <button
                     onClick={() => setPaymentMethod('COOKIES')}
@@ -275,7 +279,10 @@ export function ShopPopup({
                         : 'bg-white/10 text-white/70 hover:bg-white/20 border border-white/20'
                     }`}
                   >
-                    🍪 {selectedPack.price.cookies} COOKIES
+                    <div className="flex items-center justify-center gap-1.5">
+                      <Image src="/token/cookies.png" alt="COOKIES" width={14} height={14} className="w-3.5 h-3.5" />
+                      {selectedPack.price.cookies} COOKIES
+                    </div>
                   </button>
                 </div>
 
@@ -372,11 +379,14 @@ export function ShopPopup({
                       onClick={() => setPaymentMethod('MON')}
                       className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all ${
                         paymentMethod === 'MON'
-                          ? 'bg-blue-500 text-white border border-blue-400'
+                          ? 'bg-purple-500 text-white border border-purple-400'
                           : 'bg-white/10 text-white/70 hover:bg-white/20 border border-white/20'
                       }`}
                     >
-                      💎 {selectedPack.price.mon} MON
+                      <div className="flex items-center justify-center gap-1.5">
+                        <Image src="/token/mon.png" alt="MON" width={14} height={14} className="w-3.5 h-3.5" />
+                        {selectedPack.price.mon} MON
+                      </div>
                     </button>
                     <button
                       onClick={() => setPaymentMethod('COOKIES')}
@@ -386,7 +396,10 @@ export function ShopPopup({
                           : 'bg-white/10 text-white/70 hover:bg-white/20 border border-white/20'
                       }`}
                     >
-                      🍪 {selectedPack.price.cookies} COOKIES
+                      <div className="flex items-center justify-center gap-1.5">
+                        <Image src="/token/cookies.png" alt="COOKIES" width={14} height={14} className="w-3.5 h-3.5" />
+                        {selectedPack.price.cookies} COOKIES
+                      </div>
                     </button>
                   </div>
 
@@ -557,9 +570,15 @@ export function ShopPopup({
 
                         {/* Price Display */}
                         {!isLocked && (
-                          <div className="text-center space-y-1">
-                            <div className="text-blue-400 font-bold text-sm">💎 {pack.price.mon} MON</div>
-                            <div className="text-orange-400 font-bold text-xs">🍪 {pack.price.cookies} COOKIES</div>
+                          <div className="text-center space-y-1.5">
+                            <div className="text-purple-400 font-bold text-sm flex items-center justify-center gap-1.5">
+                              <Image src="/token/mon.png" alt="MON" width={16} height={16} className="w-4 h-4" />
+                              {pack.price.mon} MON
+                            </div>
+                            <div className="text-orange-400 font-bold text-xs flex items-center justify-center gap-1">
+                              <Image src="/token/cookies.png" alt="COOKIES" width={12} height={12} className="w-3 h-3" />
+                              {pack.price.cookies} COOKIES
+                            </div>
                           </div>
                         )}
                       </div>
@@ -655,7 +674,10 @@ export function ShopPopup({
                       {/* Price */}
                       {!isLocked && (
                         <div className="text-center">
-                          <div className="text-blue-400 font-bold text-xs">💎 {pack.price.mon} MON</div>
+                          <div className="text-purple-400 font-bold text-xs flex items-center justify-center gap-1">
+                            <Image src="/token/mon.png" alt="MON" width={12} height={12} className="w-3 h-3" />
+                            {pack.price.mon} MON
+                          </div>
                         </div>
                       )}
                     </div>

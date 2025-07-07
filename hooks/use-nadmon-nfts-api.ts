@@ -57,6 +57,8 @@ function transformBackendNFTToPokemonCard(backendNFT: BackendNFT): PokemonCard {
     rarity: mappedRarity,
     critical: backendNFT.critical,
     color: backendNFT.color,
+    fusion: backendNFT.fusion,
+    evo: backendNFT.evo,
   };
 }
 
@@ -134,16 +136,16 @@ export function useNadmonNFTsAPI(): UseNadmonNFTsReturn {
     fetchUserNFTs();
   }, [address, chainId, refetchTrigger, fetchNFTs]);
 
-  // Auto-refetch every 30 seconds to catch new NFTs
-  useEffect(() => {
-    if (!address) return;
+  // Auto-refetch disabled - only manual refresh or on specific events
+  // useEffect(() => {
+  //   if (!address) return;
 
-    const interval = setInterval(() => {
-      refetch();
-    }, API_CONFIG.POLLING.INVENTORY_REFRESH);
+  //   const interval = setInterval(() => {
+  //     refetch();
+  //   }, API_CONFIG.POLLING.INVENTORY_REFRESH);
 
-    return () => clearInterval(interval);
-  }, [address, refetch]);
+  //   return () => clearInterval(interval);
+  // }, [address, refetch]);
 
   // Memoize the return value to prevent unnecessary re-renders
   const returnValue = useMemo(() => ({

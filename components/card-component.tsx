@@ -609,16 +609,22 @@ export function MonsterCard({
               />
             </div>
 
-            {/* Merge Progress Bar - Below image */}
+            {/* Fusion Progress Bar - Below image */}
             <div className="w-20">
               <div className="w-full bg-gray-700/50 rounded-full h-1">
                 <div 
-                  className="bg-gradient-to-r from-blue-400 to-purple-400 h-1 rounded-full transition-all duration-300"
-                  style={{ width: `${(mergeLevel / maxMergeLevel) * 100}%` }}
+                  className={`h-1 rounded-full transition-all duration-300 ${
+                    (card.fusion || 0) >= 10 
+                      ? 'bg-gradient-to-r from-yellow-400 to-orange-400' 
+                      : 'bg-gradient-to-r from-blue-400 to-purple-400'
+                  }`}
+                  style={{ width: `${Math.min((card.fusion || 0) / 10 * 100, 100)}%` }}
                 />
               </div>
-              <div className="text-xs text-white/60 text-center mt-0.5">
-                {mergeLevel}/{maxMergeLevel}
+              <div className={`text-xs text-center mt-0.5 ${
+                (card.fusion || 0) >= 10 ? 'text-yellow-400 font-bold' : 'text-white/60'
+              }`}>
+                {(card.fusion || 0) >= 10 ? 'MAX' : `${card.fusion || 0}/10`}
               </div>
             </div>
           </div>
@@ -763,16 +769,22 @@ export function MonsterCard({
           </h4>
           <div className="text-xs text-white/60 text-center">#{card.id}</div>
           
-          {/* Merge Progress Bar replacing rarity and type */}
+          {/* Fusion Progress Bar replacing rarity and type */}
           <div className="mt-2 space-y-1">
             <div className="w-full bg-gray-700/50 rounded-full h-2">
               <div 
-                className="bg-gradient-to-r from-blue-400 to-purple-400 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${(mergeLevel / maxMergeLevel) * 100}%` }}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  (card.fusion || 0) >= 10 
+                    ? 'bg-gradient-to-r from-yellow-400 to-orange-400' 
+                    : 'bg-gradient-to-r from-blue-400 to-purple-400'
+                }`}
+                style={{ width: `${Math.min((card.fusion || 0) / 10 * 100, 100)}%` }}
               />
             </div>
-            <div className="text-xs text-white/60 text-center">
-              {mergeLevel}/{maxMergeLevel}
+            <div className={`text-xs text-center ${
+              (card.fusion || 0) >= 10 ? 'text-yellow-400 font-bold' : 'text-white/60'
+            }`}>
+              {(card.fusion || 0) >= 10 ? 'MAX' : `${card.fusion || 0}/10`}
             </div>
           </div>
         </div>
@@ -782,19 +794,19 @@ export function MonsterCard({
           // Compact stats - 2x2 grid with backgrounds
           <div className="grid grid-cols-2 gap-1.5 text-xs">
             <div className="flex items-center justify-between bg-black/20 rounded px-2 py-1">
-              <span>❤️</span>
+              <Heart className="w-3 h-3 text-red-400" />
               <span className="text-white/90 font-medium">{card.hp}</span>
             </div>
             <div className="flex items-center justify-between bg-black/20 rounded px-2 py-1">
-              <span>⚔️</span>
+              <Sword className="w-3 h-3 text-orange-400" />
               <span className="text-white/90 font-medium">{card.attack}</span>
             </div>
             <div className="flex items-center justify-between bg-black/20 rounded px-2 py-1">
-              <span>🛡️</span>
+              <Shield className="w-3 h-3 text-blue-400" />
               <span className="text-white/90 font-medium">{card.defense}</span>
             </div>
             <div className="flex items-center justify-between bg-black/20 rounded px-2 py-1">
-              <span>🎯</span>
+              <Target className="w-3 h-3 text-purple-400" />
               <span className="text-white/90 font-medium">{card.critical}</span>
             </div>
           </div>

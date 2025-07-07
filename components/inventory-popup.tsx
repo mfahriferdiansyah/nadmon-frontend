@@ -7,6 +7,8 @@ import type { PokemonCard } from "@/types/card"
 import { MonsterCard } from "@/components/card-component"
 import { WalletHandle } from "@/components/wallet-handle"
 import { FusionPopup } from "@/components/fusion-popup"
+import { BurnConfirmationDialog } from "@/components/burn-confirmation-dialog"
+import { useNadmonBurn } from "@/hooks/use-nadmon-burn"
 
 interface InventoryPopupProps {
   collection: PokemonCard[]
@@ -36,6 +38,8 @@ export function InventoryPopup({
   onFusionComplete,
 }: InventoryPopupProps) {
   const [fusionTarget, setFusionTarget] = useState<PokemonCard | null>(null)
+  const [burnTarget, setBurnTarget] = useState<PokemonCard | null>(null)
+  const { burnMonster, isLoading: isBurning } = useNadmonBurn()
   const handleEquipCard = (card: PokemonCard) => {
     if (equippedCards.length < 3 && !isCardEquipped(card.id)) {
       onEquipCard(card)
@@ -50,6 +54,26 @@ export function InventoryPopup({
     onSummonMonster(card)
   }
 
+  const handleBurnRequest = (card: PokemonCard) => {
+    setBurnTarget(card)
+  }
+
+  const handleBurnConfirm = async () => {
+    if (burnTarget) {
+      await burnMonster(burnTarget)
+      // Don't auto-close dialog or refresh - let user see the "not supported" message
+      // and close manually via the Cancel button
+    }
+  }
+
+  const handleBurnCancel = () => {
+    setBurnTarget(null)
+  }
+
+  const handleCloseFusion = () => {
+    setFusionTarget(null)
+  }
+
   const handleMergeCard = (card: PokemonCard) => {
     setFusionTarget(card)
   }
@@ -58,10 +82,6 @@ export function InventoryPopup({
     if (onFusionComplete) {
       onFusionComplete(targetCard, sacrificeCards)
     }
-    setFusionTarget(null)
-  }
-
-  const handleCloseFusion = () => {
     setFusionTarget(null)
   }
 
@@ -220,7 +240,7 @@ export function InventoryPopup({
                         variant="inventory"
                         onEquip={() => handleEquipCard(card)}
                         onUnequip={() => handleUnequipCard(card)}
-                        onSummon={() => handleSummonMonster(card)}
+                        onSummon={() => handleBurnRequest(card)}
                         showEquippedBadge={false}
                         mergeLevel={card.fusion || 0}
                       />
@@ -296,7 +316,7 @@ export function InventoryPopup({
                       variant="compact"
                       onEquip={() => handleEquipCard(card)}
                       onUnequip={() => handleUnequipCard(card)}
-                      onSummon={() => handleSummonMonster(card)}
+                      onSummon={() => handleBurnRequest(card)}
                       showEquippedBadge={false}
                       mergeLevel={card.fusion || 0}
                     />
@@ -326,6 +346,14 @@ export function InventoryPopup({
           onSwapTarget={setFusionTarget}
         />
       )}
+
+      {/* Burn Confirmation Dialog */}
+      <BurnConfirmationDialog
+        card={burnTarget}
+        isOpen={!!burnTarget}
+        onConfirm={handleBurnConfirm}
+        onCancel={handleBurnCancel}
+      />
     </div>
   )
 } 

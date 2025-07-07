@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { Package, Sword, ShoppingBag, Swords, BarChart3, Heart, Shield, Target, UserX, ChevronUp, ChevronDown, Flame, Droplets, Leaf, Zap, Lock, PawPrint } from "lucide-react"
+import { Package, Sword, ShoppingBag, Swords, BarChart3, Heart, Shield, Target, UserX, ChevronUp, ChevronDown, Flame, Droplets, Leaf, Zap, Lock, PawPrint, Info } from "lucide-react"
 import type { PokemonCard } from "@/types/card"
 import Image from "next/image"
 import { useState } from "react"
@@ -11,6 +11,7 @@ interface GameUIProps {
   onOpenInventory: () => void
   onOpenShop: () => void
   onOpenBattleground: () => void
+  onOpenInstructions?: () => void
   equippedCardsCount: number
   collectionCount: number
   equippedCards: PokemonCard[]
@@ -66,6 +67,7 @@ export function GameUI({
   onOpenInventory,
   onOpenShop,
   onOpenBattleground,
+  onOpenInstructions,
   equippedCardsCount,
   collectionCount,
   equippedCards,
@@ -176,16 +178,22 @@ export function GameUI({
                               </div>
                             </div>
 
-                            {/* Progress Bar */}
+                            {/* Fusion Progress Bar */}
                             <div className="w-10 mt-1">
                               <div className="w-full bg-gray-700/50 rounded-full h-0.5">
                                 <div 
-                                  className="bg-gradient-to-r from-blue-400 to-purple-400 h-0.5 rounded-full transition-all duration-300"
-                                  style={{ width: `0%` }}
+                                  className={`h-0.5 rounded-full transition-all duration-300 ${
+                                    (card.fusion || 0) >= 10 
+                                      ? 'bg-gradient-to-r from-yellow-400 to-orange-400' 
+                                      : 'bg-gradient-to-r from-blue-400 to-purple-400'
+                                  }`}
+                                  style={{ width: `${Math.min((card.fusion || 0) / 10 * 100, 100)}%` }}
                                 />
                               </div>
-                              <div className="text-[10px] text-white/60 text-center mt-0.5">
-                                0/10
+                              <div className={`text-[10px] text-center mt-0.5 ${
+                                (card.fusion || 0) >= 10 ? 'text-yellow-400 font-bold' : 'text-white/60'
+                              }`}>
+                                {(card.fusion || 0) >= 10 ? 'MAX' : `${card.fusion || 0}/10`}
                               </div>
                             </div>
                           </div>
@@ -253,6 +261,20 @@ export function GameUI({
           </div>
         </div>
 
+        {/* Instructions Button - Bottom Right Corner */}
+        <div className="absolute bottom-8 left-8 pointer-events-auto">
+          {onOpenInstructions && (
+            <button
+              onClick={onOpenInstructions}
+              className="glass-menu-medium group"
+              title="Game Instructions"
+            >
+              <Info className="w-6 h-6 text-white group-hover:text-blue-300 transition-colors" />
+              <span className="glass-tooltip">Game Guide</span>
+            </button>
+          )}
+        </div>
+
         {/* Horizontal Glass Menu - Bottom Right */}
         <div className="absolute bottom-8 right-8 pointer-events-auto">
           <div className="flex items-end gap-4">
@@ -313,15 +335,26 @@ export function GameUI({
           <div className="glass-panel px-4 py-3 rounded-xl backdrop-blur-md bg-white/10 border border-white/20">
             <div className="flex items-center justify-between">
               <h1 className="text-white text-lg font-bold">NadMon on Monad</h1>
-              <div className="flex items-center gap-3 text-white text-sm">
-                <div className="flex items-center gap-1">
-                  <PawPrint className="w-4 h-4 text-white" />
-                  <span>{collectionCount}</span>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 text-white text-sm">
+                  <div className="flex items-center gap-1">
+                    <PawPrint className="w-4 h-4 text-white" />
+                    <span>{collectionCount}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Sword className="w-4 h-4" />
+                    <span>{equippedCardsCount}/3</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Sword className="w-4 h-4" />
-                  <span>{equippedCardsCount}/3</span>
-                </div>
+                {onOpenInstructions && (
+                  <button
+                    onClick={onOpenInstructions}
+                    className="p-2 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20 transition-all duration-200"
+                    title="Game Instructions"
+                  >
+                    <Info className="w-4 h-4 text-white" />
+                  </button>
+                )}
               </div>
             </div>
           </div>

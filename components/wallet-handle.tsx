@@ -4,7 +4,8 @@ import { useAccount, useBalance } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useCookiesBalance } from '@/hooks/use-nadmon-contracts';
 import { formatCookies } from '@/contracts/utils';
-import { Wallet, Cookie, Coins } from 'lucide-react';
+import { Wallet } from 'lucide-react';
+import Image from 'next/image';
 
 interface WalletHandleProps {
   className?: string;
@@ -41,17 +42,29 @@ export function WalletHandle({ className = '' }: WalletHandleProps) {
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       {/* Cookies Balance */}
-      <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-500/20 border border-amber-400/30">
-        <Cookie className="w-3 h-3 text-amber-400" />
-        <span className="text-amber-100 text-xs font-mono">
+      <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/20 border border-amber-400/30">
+        <Image 
+          src="/token/cookies.png" 
+          alt="COOKIES" 
+          width={14} 
+          height={14} 
+          className="w-3.5 h-3.5"
+        />
+        <span className="text-amber-100 text-xs font-medium font-mono">
           {loadingCookies ? '...' : formatCookies(typeof cookiesBalance === 'bigint' ? cookiesBalance : BigInt(0))}
         </span>
       </div>
 
       {/* MON Balance */}
-      <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-500/20 border border-blue-400/30">
-        <Coins className="w-3 h-3 text-blue-400" />
-        <span className="text-blue-100 text-xs font-mono">
+      <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-purple-500/20 border border-purple-400/30">
+        <Image 
+          src="/token/mon.png" 
+          alt="MON" 
+          width={14} 
+          height={14} 
+          className="w-3.5 h-3.5"
+        />
+        <span className="text-purple-100 text-xs font-medium font-mono">
           {loadingMON ? '...' : (monBalance ? parseFloat(monBalance.formatted).toFixed(2) : '0.00')}
         </span>
       </div>

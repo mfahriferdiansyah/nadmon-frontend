@@ -39,6 +39,9 @@ export function useNadmonFusion() {
     targetCard: PokemonCard, 
     sacrificeCards: PokemonCard[]
   ) => {
+    // Show loading toast with ID for later dismissal
+    const loadingToastId = `fusion-prep-${Date.now()}`
+    
     try {
       setIsLoading(true)
       setError(null)
@@ -56,20 +59,32 @@ export function useNadmonFusion() {
         throw new Error('All cards must have the same element and type for fusion')
       }
 
-      // Calculate total fusion points
-      const totalFusion = [targetCard, ...sacrificeCards].reduce((sum, card) => {
-        return sum + (card.fusion || 0) + 1
-      }, 0)
+      // Calculate total fusion points: target's current fusion + 1 point per sacrifice
+      const currentTargetFusion = targetCard.fusion || 0
+      const pointsFromSacrifices = sacrificeCards.length // Each sacrifice = 1 point
+      const totalFusion = currentTargetFusion + pointsFromSacrifices
 
-      if (totalFusion < 10) {
-        throw new Error('Need at least 10 fusion points to evolve (each card provides its fusion level + 1)')
+      // Allow fusion with any number of sacrifices (minimum 1 sacrifice required)
+      if (sacrificeCards.length === 0) {
+        throw new Error('At least 1 sacrifice card is required for fusion')
       }
 
-      // Show loading toast
-      TransactionToastManager.loading(
-        'Preparing fusion transaction...',
-        `Evolving ${targetCard.name} with ${sacrificeCards.length} sacrifices`
-      )
+      // Allow incremental fusion - contract will handle the logic
+      // No minimum fusion point requirement - user can fuse with any amount
+
+      // Debug logging
+      console.log('🔥 Fusion Debug Info:')
+      console.log('Target card:', targetCard.name, `(ID: ${targetCard.id}, Fusion: ${targetCard.fusion || 0})`)
+      console.log('Sacrifice cards:', sacrificeCards.map(c => `${c.name} (ID: ${c.id}, Fusion: ${c.fusion || 0})`))
+      console.log('Total fusion points:', totalFusion)
+      console.log('Token IDs array:', tokenIds)
+
+      TransactionToastManager.show({
+        id: loadingToastId,
+        status: 'pending',
+        title: 'Preparing fusion transaction...',
+        description: `Evolving ${targetCard.name} with ${sacrificeCards.length} sacrifices (${totalFusion} total fusion points)`
+      })
 
       await writeContract({
         address: contracts.nadmonNFT as `0x${string}`,
@@ -78,14 +93,38 @@ export function useNadmonFusion() {
         args: [tokenIds.map(id => BigInt(id))]
       })
 
+      // Dismiss the preparation toast once transaction is submitted
+      TransactionToastManager.dismiss(loadingToastId)
+
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred'
+      console.error('Fusion error:', err)
+      
+      // Dismiss the preparation toast
+      TransactionToastManager.dismiss(loadingToastId)
+      
+      // Map contract errors to user-friendly messages
+      let errorMessage = 'Unknown error occurred'
+      if (err instanceof Error) {
+        if (err.message.includes('NotEnoughFusion')) {
+          errorMessage = 'Insufficient fusion points for evolution (minimum 10 required)'
+        } else if (err.message.includes('DifferentElements')) {
+          errorMessage = 'All monsters must have the same element'
+        } else if (err.message.includes('DifferentTypes')) {
+          errorMessage = 'All monsters must be the same type'
+        } else if (err.message.includes('NotEnoughCards')) {
+          errorMessage = 'Not enough cards provided for fusion'
+        } else if (err.message.includes('User rejected')) {
+          errorMessage = 'Transaction was cancelled by user'
+        } else {
+          errorMessage = err.message
+        }
+      }
+      
       setError(errorMessage)
       TransactionToastManager.error(
         'Fusion failed',
         errorMessage
       )
-      console.error('Fusion error:', err)
     } finally {
       setIsLoading(false)
     }
