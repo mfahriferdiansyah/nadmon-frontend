@@ -103,7 +103,7 @@ export function GameUI({
         <div className="absolute top-4 left-4 right-4 flex justify-center items-start pointer-events-auto">
           {/* Game Title */}
           <div className="glass-panel px-6 py-3 rounded-xl backdrop-blur-md bg-white/10 border border-white/20">
-            <h1 className="text-white text-xl font-bold">NadMon on Monad</h1>
+            <h1 className="text-white text-xl font-bold">NADMON on MONAD</h1>
           </div>
         </div>
 
@@ -329,7 +329,7 @@ export function GameUI({
         {/* Mobile Game Title - Simplified */}
         <div className="absolute top-20 left-1/2 transform -translate-x-1/2 pointer-events-auto">
           <div className="glass-panel px-4 py-2 rounded-xl backdrop-blur-md bg-white/10 border border-white/20">
-            <h1 className="text-white text-base font-bold text-center">NadMon on Monad</h1>
+            <h1 className="text-white text-base font-bold text-center">NADMON on MONAD</h1>
           </div>
         </div>
 
