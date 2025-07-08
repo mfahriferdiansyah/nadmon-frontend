@@ -7,8 +7,10 @@ import type { PokemonCard } from "@/types/card"
 import { MonsterCard } from "@/components/card-component"
 import { WalletHandle } from "@/components/wallet-handle"
 import { FusionPopup } from "@/components/fusion-popup"
+import { MobileFusionPopup } from "@/components/mobile-fusion-popup"
 import { BurnConfirmationDialog } from "@/components/burn-confirmation-dialog"
 import { useNadmonBurn } from "@/hooks/use-nadmon-burn"
+import { useIsMobile } from "@/components/ui/use-mobile"
 
 interface InventoryPopupProps {
   collection: PokemonCard[]
@@ -40,6 +42,7 @@ export function InventoryPopup({
   const [fusionTarget, setFusionTarget] = useState<PokemonCard | null>(null)
   const [burnTarget, setBurnTarget] = useState<PokemonCard | null>(null)
   const { burnMonster, isLoading: isBurning } = useNadmonBurn()
+  const isMobile = useIsMobile()
   const handleEquipCard = (card: PokemonCard) => {
     if (equippedCards.length < 3 && !isCardEquipped(card.id)) {
       onEquipCard(card)
@@ -338,13 +341,23 @@ export function InventoryPopup({
 
       {/* Fusion Popup */}
       {fusionTarget && (
-        <FusionPopup
-          targetCard={fusionTarget}
-          collection={collection}
-          onClose={handleCloseFusion}
-          onFusionComplete={handleFusionComplete}
-          onSwapTarget={setFusionTarget}
-        />
+        isMobile ? (
+          <MobileFusionPopup
+            targetCard={fusionTarget}
+            collection={collection}
+            onClose={handleCloseFusion}
+            onFusionComplete={handleFusionComplete}
+            onSwapTarget={setFusionTarget}
+          />
+        ) : (
+          <FusionPopup
+            targetCard={fusionTarget}
+            collection={collection}
+            onClose={handleCloseFusion}
+            onFusionComplete={handleFusionComplete}
+            onSwapTarget={setFusionTarget}
+          />
+        )
       )}
 
       {/* Burn Confirmation Dialog */}

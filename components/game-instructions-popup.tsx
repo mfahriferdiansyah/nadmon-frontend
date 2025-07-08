@@ -62,7 +62,7 @@ export function GameInstructionsPopup({ isOpen, onClose }: GameInstructionsPopup
             </p>
           </div>
           
-          <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+          {/* <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
             <h4 className="text-blue-300 font-semibold mb-2 flex items-center gap-2">
               <Info className="w-4 h-4" />
               What Makes NADMON Special
@@ -73,7 +73,7 @@ export function GameInstructionsPopup({ isOpen, onClose }: GameInstructionsPopup
               <li>Real-time battles and expeditions</li>
               <li>Soulbound Tokens (SBT) - your progress stays with you</li>
             </ul>
-          </div>
+          </div> */}
         </div>
       )
     },

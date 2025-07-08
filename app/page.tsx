@@ -6,8 +6,13 @@ import { useAccount, useChainId } from "wagmi"
 import { GameCanvas } from "@/components/game-canvas"
 import { GameUI } from "@/components/game-ui"
 import { InventoryPopup } from "@/components/inventory-popup"
+import { MobileInventoryPopup } from "@/components/mobile-inventory-popup"
 import { ShopPopup } from "@/components/shop-popup"
+import { MobileShopPopup } from "@/components/mobile-shop-popup"
 import { BattlegroundPopup } from "@/components/battleground-popup"
+import { FusionPopup } from "@/components/fusion-popup"
+import { MobileFusionPopup } from "@/components/mobile-fusion-popup"
+import { useIsMobile } from "@/components/ui/use-mobile"
 import { UnderDevelopmentOverlay } from "@/components/under-development-overlay"
 import { PackOpeningAnimation } from "@/components/pack-opening-animation"
 import { FocusedCardSession } from "@/components/focused-card-session"
@@ -27,6 +32,9 @@ import { API_CONFIG, apiRequestWithRetry } from "@/lib/api-config"
 type ActivePopup = "inventory" | "shop" | "battleground" | null
 
 export default function GachaGame() {
+  // Mobile detection
+  const isMobile = useIsMobile()
+  
   // Wallet connection state
   const { isConnected } = useAccount()
   const chainId = useChainId()
@@ -468,8 +476,8 @@ export default function GachaGame() {
       />
 
 
-      {/* Wallet Handle - Top Right */}
-      <div className="absolute top-4 right-4 z-40">
+      {/* Wallet Handle - Top Middle on Mobile, Top Right on Desktop */}
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 md:left-auto md:right-4 md:transform-none z-40">
         <WalletHandle />
       </div>
 
@@ -482,29 +490,55 @@ export default function GachaGame() {
 
       {/* Popups */}
       {!shouldShowWalletPopup && activePopup === "inventory" && (
-        <InventoryPopup
+        isMobile ? (
+          <MobileInventoryPopup
             collection={collection}
             equippedCards={equippedCards}
             onEquipCard={handleEquipCard}
             onUnequipCard={handleUnequipCard}
             isCardEquipped={isCardEquipped}
-          onSummonMonster={handleSummonMonster}
-          onClose={closePopup}
-          isLoading={nftsLoading}
-          error={nftsError}
-          onRefresh={refetchNFTs}
-          onFusionComplete={handleFusionComplete}
-        />
+            onSummonMonster={handleSummonMonster}
+            onClose={closePopup}
+            isLoading={nftsLoading}
+            error={nftsError}
+            onRefresh={refetchNFTs}
+            onFusionComplete={handleFusionComplete}
+          />
+        ) : (
+          <InventoryPopup
+            collection={collection}
+            equippedCards={equippedCards}
+            onEquipCard={handleEquipCard}
+            onUnequipCard={handleUnequipCard}
+            isCardEquipped={isCardEquipped}
+            onSummonMonster={handleSummonMonster}
+            onClose={closePopup}
+            isLoading={nftsLoading}
+            error={nftsError}
+            onRefresh={refetchNFTs}
+            onFusionComplete={handleFusionComplete}
+          />
+        )
       )}
 
       {!shouldShowWalletPopup && activePopup === "shop" && (
-        <ShopPopup
-          collection={collection}
-          onPackSelect={handlePackSelect}
-          isOpening={isOpening}
-          onClose={closePopup}
-          onPackPurchased={handlePackPurchased}
-        />
+        isMobile ? (
+          <MobileShopPopup
+            collection={collection}
+            onPackSelect={handlePackSelect}
+            isOpening={isOpening}
+            onClose={closePopup}
+            onPackPurchased={handlePackPurchased}
+          />
+        ) : (
+          <ShopPopup
+            collection={collection}
+            onPackSelect={handlePackSelect}
+            isOpening={isOpening}
+            onClose={closePopup}
+            onPackPurchased={handlePackPurchased}
+          />
+        )
       )}
 
       {!shouldShowWalletPopup && activePopup === "battleground" && (

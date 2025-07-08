@@ -99,39 +99,35 @@ export function GameUI({
     <div className="absolute inset-0 pointer-events-none z-20">
       {/* Desktop Layout */}
       <div className="hidden md:block">
-        {/* Top Stats Bar */}
-        <div className="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-auto">
-          <div className="glass-panel px-4 py-2 rounded-xl backdrop-blur-md bg-white/10 border border-white/20">
-            <div className="flex items-center gap-4 text-white">
-              <div className="flex items-center gap-2">
-                <PawPrint className="w-4 h-4 text-white" />
-                <span className="text-sm font-medium">{collectionCount}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Sword className="w-4 h-4" />
-                <span className="text-sm font-medium">{equippedCardsCount}/3</span>
-              </div>
-            </div>
-          </div>
-
+        {/* Top Bar - Game Title Only */}
+        <div className="absolute top-4 left-4 right-4 flex justify-center items-start pointer-events-auto">
           {/* Game Title */}
           <div className="glass-panel px-6 py-3 rounded-xl backdrop-blur-md bg-white/10 border border-white/20">
             <h1 className="text-white text-xl font-bold">NadMon on Monad</h1>
           </div>
-
-          {/* Placeholder for balance */}
-          <div className="w-32" />
         </div>
 
-        {/* Equipped Monsters Display - Top Left Vertical */}
-        <div className="absolute top-20 left-4 pointer-events-auto">
+        {/* Monster Stats & Equipped Display - Top Left Vertical */}
+        <div className="absolute top-4 left-4 pointer-events-auto">
           <div className="glass-panel rounded-xl backdrop-blur-md bg-white/5 border border-white/20 w-56">
-            {/* Header with Toggle */}
+            {/* Header with Toggle and Stats */}
             <div className="flex items-center justify-between p-3 border-b border-white/20">
-              <h3 className="text-white text-sm font-semibold">
-                Equipped Monsters ({equippedCardsCount}/3)
-              </h3>
-          <button
+              <div className="flex items-center gap-3">
+                <h3 className="text-white text-sm font-semibold">
+                  Monsters
+                </h3>
+                <div className="flex items-center gap-3 text-white/70 text-xs">
+                  <div className="flex items-center gap-1">
+                    <PawPrint className="w-3 h-3" />
+                    <span>{collectionCount}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Sword className="w-3 h-3" />
+                    <span>{equippedCardsCount}/3</span>
+                  </div>
+                </div>
+              </div>
+              <button
                 onClick={() => setShowEquippedMonsters(!showEquippedMonsters)}
                 className="text-white/70 hover:text-white transition-colors p-1 rounded hover:bg-white/10"
               >
@@ -330,39 +326,41 @@ export function GameUI({
 
       {/* Mobile Layout - Keep existing */}
       <div className="md:hidden">
-        {/* Mobile Top Bar */}
-        <div className="absolute top-4 left-4 right-4 pointer-events-auto">
-          <div className="glass-panel px-4 py-3 rounded-xl backdrop-blur-md bg-white/10 border border-white/20">
-            <div className="flex items-center justify-between">
-              <h1 className="text-white text-lg font-bold">NadMon on Monad</h1>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-3 text-white text-sm">
-                  <div className="flex items-center gap-1">
-                    <PawPrint className="w-4 h-4 text-white" />
-                    <span>{collectionCount}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Sword className="w-4 h-4" />
-                    <span>{equippedCardsCount}/3</span>
-                  </div>
-                </div>
-                {onOpenInstructions && (
-                  <button
-                    onClick={onOpenInstructions}
-                    className="p-2 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20 transition-all duration-200"
-                    title="Game Instructions"
-                  >
-                    <Info className="w-4 h-4 text-white" />
-                  </button>
-                )}
-              </div>
-            </div>
+        {/* Mobile Game Title - Simplified */}
+        <div className="absolute top-20 left-1/2 transform -translate-x-1/2 pointer-events-auto">
+          <div className="glass-panel px-4 py-2 rounded-xl backdrop-blur-md bg-white/10 border border-white/20">
+            <h1 className="text-white text-base font-bold text-center">NadMon on Monad</h1>
           </div>
         </div>
 
         {/* Mobile Bottom Navigation */}
         <div className="absolute bottom-4 left-4 right-4 pointer-events-auto">
-          <div className="glass-panel rounded-2xl backdrop-blur-md bg-white/10 border border-white/20 p-4">
+          <div className="glass-panel rounded-2xl backdrop-blur-md bg-white/10 border border-white/20 p-4 space-y-4">
+            {/* Stats Bar */}
+            <div className="flex items-center justify-center gap-6 text-white text-sm">
+              <div className="flex items-center gap-2">
+                <PawPrint className="w-4 h-4 text-white" />
+                <span>{collectionCount}</span>
+                <span className="text-white/60 text-xs">monsters</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Sword className="w-4 h-4" />
+                <span>{equippedCardsCount}/3</span>
+                <span className="text-white/60 text-xs">equipped</span>
+              </div>
+              {onOpenInstructions && (
+                <button
+                  onClick={onOpenInstructions}
+                  className="flex items-center gap-1 p-2 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20 transition-all duration-200"
+                  title="Game Instructions"
+                >
+                  <Info className="w-4 h-4 text-white" />
+                  <span className="text-white text-xs">Guide</span>
+                </button>
+              )}
+            </div>
+            
+            {/* Navigation Buttons */}
             <div className="flex justify-around items-center">
               <button
                 onClick={onOpenInventory}
