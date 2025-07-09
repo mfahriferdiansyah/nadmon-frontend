@@ -10,7 +10,7 @@ interface GameInstructionsPopupProps {
 
 export function GameInstructionsPopup({ isOpen, onClose }: GameInstructionsPopupProps) {
   const [currentStep, setCurrentStep] = useState(0)
-  const [activeSection, setActiveSection] = useState('getting-started')
+  const [activeSection, setActiveSection] = useState('start')
 
   if (!isOpen) return null
 
@@ -632,91 +632,196 @@ export function GameInstructionsPopup({ isOpen, onClose }: GameInstructionsPopup
         </div>
       </div>
 
-      {/* Mobile Layout - Step Navigation */}
-      <div className="md:hidden relative w-full max-w-lg glass-panel rounded-2xl backdrop-blur-lg bg-gradient-to-br from-blue-900/40 to-purple-900/40 border border-blue-500/30 shadow-2xl overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-blue-500/20">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-500/20 border border-blue-400/30 flex items-center justify-center">
-              <Info className="w-5 h-5 text-blue-400" />
+      {/* Mobile Layout - Ultra Compact Bottom Sheet */}
+      <div className="md:hidden fixed inset-0 z-50 flex flex-col items-center justify-end pb-4 px-2">
+        {/* Backdrop */}
+        <div 
+          className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+          onClick={onClose}
+        />
+        
+        {/* Mobile Popup Container */}
+        <div className="relative w-full max-w-lg h-[70vh] glass-panel rounded-t-2xl rounded-b-xl backdrop-blur-lg bg-white/10 border border-white/20 shadow-2xl overflow-hidden flex flex-col">
+          {/* Compact Header */}
+          <div className="flex items-center justify-between p-2 border-b border-white/20">
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded bg-gradient-to-r from-blue-500/30 to-purple-500/30 flex items-center justify-center">
+                <Info className="w-2.5 h-2.5 text-blue-300" />
+              </div>
+              <h2 className="text-sm font-bold text-white">Game Guide</h2>
             </div>
-            <div>
-              <h2 className="text-lg font-bold text-white">{currentStepData.title}</h2>
-              <p className="text-blue-300/80 text-sm">{currentStepData.subtitle}</p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-lg hover:bg-white/10 transition-colors text-white/70 hover:text-white"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Progress Indicator */}
-        <div className="px-6 pt-4">
-          <div className="flex gap-2">
-            {steps.map((_, index) => (
-              <div
-                key={index}
-                className={`flex-1 h-1 rounded-full transition-all duration-300 ${
-                  index <= currentStep
-                    ? 'bg-gradient-to-r from-blue-400 to-purple-400'
-                    : 'bg-white/20'
-                }`}
-              />
-            ))}
-          </div>
-          <div className="text-center mt-2">
-            <span className="text-white/60 text-xs">
-              Step {currentStep + 1} of {steps.length}
-            </span>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-6 max-h-96 overflow-y-auto">
-          {currentStepData.content}
-        </div>
-
-        {/* Actions */}
-        <div className="p-6 pt-0">
-          <div className="flex gap-3 mb-3">
-            <button
-              onClick={handlePrevious}
-              disabled={currentStep === 0}
-              className="flex-1 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 bg-white/10 text-white/70 hover:bg-white/20 hover:text-white border border-white/20 hover:border-white/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Previous
-            </button>
-            
-            {currentStep < steps.length - 1 ? (
-              <button
-                onClick={handleNext}
-                className="flex-1 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 border border-blue-500 hover:border-blue-400 shadow-lg hover:shadow-blue-500/25 flex items-center justify-center gap-2"
-              >
-                Next
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            ) : (
-              <button
-                onClick={onClose}
-                className="flex-1 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 bg-gradient-to-r from-green-600 to-blue-600 text-white hover:from-green-700 hover:to-blue-700 border border-green-500 hover:border-green-400 shadow-lg hover:shadow-green-500/25 flex items-center justify-center gap-2"
-              >
-                <CheckCircle className="w-4 h-4" />
-                Got It!
-              </button>
-            )}
-          </div>
-          
-          {/* Close text below buttons */}
-          <div className="text-center">
             <button
               onClick={onClose}
-              className="text-xs text-white/50 hover:text-white/80 transition-colors underline decoration-dotted underline-offset-2 hover:decoration-solid"
+              className="p-1 rounded hover:bg-white/10 transition-colors text-white"
             >
-              Close instructions
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Tab Navigation */}
+          <div className="border-b border-white/20 bg-white/5">
+            <div className="flex">
+              {[
+                { id: 'start', name: 'Quick Start', icon: <Gamepad2 className="w-3 h-3" /> },
+                { id: 'interface', name: 'Interface', icon: <Package className="w-3 h-3" /> },
+                { id: 'features', name: 'Features', icon: <CheckCircle className="w-3 h-3" /> }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveSection(tab.id)}
+                  className={`flex-1 flex items-center justify-center gap-1 px-2 py-2 text-xs font-medium transition-all ${
+                    activeSection === tab.id 
+                      ? 'text-white border-b-2 border-blue-400 bg-white/10' 
+                      : 'text-white/70 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  {tab.icon}
+                  <span>{tab.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Compact Content */}
+          <div className="flex-1 overflow-y-auto p-2">
+            {/* Quick Start Tab */}
+            {activeSection === 'start' && (
+              <div className="space-y-2">
+                <h3 className="text-sm font-bold text-white mb-2">Getting Started</h3>
+                
+                <div className="bg-green-500/10 border border-green-500/30 rounded p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-4 h-4 rounded-full bg-green-500/20 flex items-center justify-center">
+                      <span className="text-green-300 font-bold text-xs">1</span>
+                    </div>
+                    <h4 className="text-green-300 font-semibold text-xs">Connect Wallet</h4>
+                  </div>
+                  <ul className="text-green-200/90 text-xs space-y-0.5 ml-2">
+                    <li>• Use MetaMask or compatible wallet</li>
+                    <li>• Switch to Monad Testnet</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-purple-500/10 border border-purple-500/30 rounded p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-4 h-4 rounded-full bg-purple-500/20 flex items-center justify-center">
+                      <span className="text-purple-300 font-bold text-xs">2</span>
+                    </div>
+                    <h4 className="text-purple-300 font-semibold text-xs">Buy Monster Pack</h4>
+                  </div>
+                  <ul className="text-purple-200/90 text-xs space-y-0.5 ml-2">
+                    <li>• Visit Shop → Select pack</li>
+                    <li>• Pay with MON or COOKIES</li>
+                    <li>• Get 5 random monsters</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-4 h-4 rounded-full bg-blue-500/20 flex items-center justify-center">
+                      <span className="text-blue-300 font-bold text-xs">3</span>
+                    </div>
+                    <h4 className="text-blue-300 font-semibold text-xs">Build Team</h4>
+                  </div>
+                  <ul className="text-blue-200/90 text-xs space-y-0.5 ml-2">
+                    <li>• Open Inventory</li>
+                    <li>• Equip up to 3 monsters</li>
+                    <li>• Use fusion to evolve</li>
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {/* Interface Tab */}
+            {activeSection === 'interface' && (
+              <div className="space-y-2">
+                <h3 className="text-sm font-bold text-white mb-2">Navigation</h3>
+                
+                <div className="bg-purple-500/10 border border-purple-500/30 rounded p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Package className="w-4 h-4 text-purple-400" />
+                    <h4 className="font-semibold text-purple-200 text-xs">Shop</h4>
+                  </div>
+                  <ul className="text-purple-200/90 text-xs space-y-0.5">
+                    <li>• Buy monster packs</li>
+                    <li>• Use MON tokens or COOKIES</li>
+                    <li>• 5 monsters per pack</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-green-500/10 border border-green-500/30 rounded p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Users className="w-4 h-4 text-green-400" />
+                    <h4 className="font-semibold text-green-200 text-xs">Inventory</h4>
+                  </div>
+                  <ul className="text-green-200/90 text-xs space-y-0.5">
+                    <li>• View all your monsters</li>
+                    <li>• Equip/unequip from team</li>
+                    <li>• Perform fusion operations</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-orange-500/10 border border-orange-500/30 rounded p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Crown className="w-4 h-4 text-orange-400" />
+                    <h4 className="font-semibold text-orange-200 text-xs">Battle</h4>
+                    <span className="text-xs bg-yellow-500/20 text-yellow-300 px-1 py-0.5 rounded">Soon</span>
+                  </div>
+                  <ul className="text-orange-200/90 text-xs space-y-0.5">
+                    <li>• PvE battles (coming soon)</li>
+                    <li>• Monster expeditions</li>
+                    <li>• Earn rewards</li>
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {/* Features Tab */}
+            {activeSection === 'features' && (
+              <div className="space-y-2">
+                <div className="bg-green-500/10 border border-green-500/30 rounded p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <h4 className="text-green-300 font-semibold text-xs">Available Now</h4>
+                  </div>
+                  <ul className="text-green-200/90 text-xs space-y-0.5">
+                    <li>• Monster pack purchasing</li>
+                    <li>• Collection management</li>
+                    <li>• Fusion system</li>
+                    <li>• Team building (3 max)</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <AlertTriangle className="w-4 h-4 text-yellow-400" />
+                    <h4 className="text-yellow-300 font-semibold text-xs">Coming Soon</h4>
+                  </div>
+                  <ul className="text-yellow-200/90 text-xs space-y-0.5">
+                    <li>• PvE battles & expeditions</li>
+                    <li>• Monster burning system</li>
+                    <li>• Leaderboards</li>
+                    <li>• Advanced battle mechanics</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded p-2 text-center">
+                  <p className="text-blue-200 text-xs">
+                    🚀 New features added regularly!
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Single Action Button */}
+          <div className="p-2 bg-white/5 border-t border-white/20">
+            <button
+              onClick={onClose}
+              className="w-full py-2 px-3 rounded-lg bg-gradient-to-r from-green-600 to-blue-600 text-white hover:from-green-700 hover:to-blue-700 transition-all duration-200 font-medium text-sm flex items-center justify-center gap-2"
+            >
+              <CheckCircle className="w-4 h-4" />
+              Got It!
             </button>
           </div>
         </div>
