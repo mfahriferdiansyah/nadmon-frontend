@@ -140,9 +140,9 @@ export function useCardSession(cards: PokemonCard[]) {
       return "Card focusing..."
     }
     
-    if (isClickCooldown) {
-      return "Please wait a moment before clicking again..."
-    }
+    // if (isClickCooldown) {
+    //   return "Please wait a moment before clicking again..."
+    // }
     
     if (currentCardIndex < 0 || thrownCards.size === cards.length) {
       return "All cards revealed! Returning to main screen..."
@@ -150,9 +150,9 @@ export function useCardSession(cards: PokemonCard[]) {
 
     const isCurrentFlipped = flippedCards.has(currentCardIndex)
     if (!isCurrentFlipped) {
-      return "Tap the top card to flip it and see what Pokemon you got!"
+      return "Tap the card"
     } else {
-      return "Tap the card again to throw it out dramatically!"
+      return "Tap the card again"
     }
   }
 

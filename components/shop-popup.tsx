@@ -81,6 +81,7 @@ export function ShopPopup({
         await buyPackWithCookies()
       }
     } catch (error) {
+      
       console.error('Purchase failed:', error)
     }
   }
