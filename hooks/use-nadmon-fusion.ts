@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { useWriteContract, useWaitForTransactionReceipt, useChainId } from 'wagmi'
 import { parseAbi } from 'viem'
 import { getContractAddresses } from '@/contracts/config'
-import { TransactionToastManager } from '@/components/ui/transaction-toast'
+import { toast } from '@/lib/toast-service'
 import type { PokemonCard } from '@/types/card'
 
 // Simplified ABI for the evolve function
@@ -39,9 +39,6 @@ export function useNadmonFusion() {
     targetCard: PokemonCard, 
     sacrificeCards: PokemonCard[]
   ) => {
-    // Show loading toast with ID for later dismissal
-    const loadingToastId = `fusion-prep-${Date.now()}`
-    
     try {
       setIsLoading(true)
       setError(null)
@@ -69,9 +66,6 @@ export function useNadmonFusion() {
         throw new Error('At least 1 sacrifice card is required for fusion')
       }
 
-      // Allow incremental fusion - contract will handle the logic
-      // No minimum fusion point requirement - user can fuse with any amount
-
       // Debug logging
       console.log('🔥 Fusion Debug Info:')
       console.log('Target card:', targetCard.name, `(ID: ${targetCard.id}, Fusion: ${targetCard.fusion || 0})`)
@@ -79,12 +73,8 @@ export function useNadmonFusion() {
       console.log('Total fusion points:', totalFusion)
       console.log('Token IDs array:', tokenIds)
 
-      TransactionToastManager.show({
-        id: loadingToastId,
-        status: 'pending',
-        title: 'Preparing fusion transaction...',
-        description: `Evolving ${targetCard.name} with ${sacrificeCards.length} sacrifices (${totalFusion} total fusion points)`
-      })
+      // Simple loading toast with auto-cleanup
+      const loadingToastId = toast.loading(`Preparing fusion transaction...`)
 
       await writeContract({
         address: contracts.nadmonNFT as `0x${string}`,
@@ -94,13 +84,11 @@ export function useNadmonFusion() {
       })
 
       // Dismiss the preparation toast once transaction is submitted
-      TransactionToastManager.dismiss(loadingToastId)
+      toast.dismiss(loadingToastId)
+      toast.info('Transaction submitted!')
 
     } catch (err) {
       console.error('Fusion error:', err)
-      
-      // Dismiss the preparation toast
-      TransactionToastManager.dismiss(loadingToastId)
       
       // Map contract errors to user-friendly messages
       let errorMessage = 'Unknown error occurred'
@@ -121,62 +109,35 @@ export function useNadmonFusion() {
       }
       
       setError(errorMessage)
-      TransactionToastManager.error(
-        'Fusion failed',
-        errorMessage
-      )
+      toast.error(`Fusion failed: ${errorMessage}`)
     } finally {
       setIsLoading(false)
     }
   }, [writeContract, contracts.nadmonNFT])
 
-  // Handle transaction states with toasts
+  // Handle transaction states with simple toasts
   useEffect(() => {
     if (isPending && hash) {
-      TransactionToastManager.show({
-        id: `fusion-${hash}`,
-        status: 'pending',
-        title: 'Transaction submitted',
-        description: 'Waiting for confirmation...',
-        txHash: hash,
-        blockExplorerUrl: 'https://testnet.monvision.io'
-      })
+      toast.loading('Transaction pending...', { duration: 0 })
     }
   }, [isPending, hash])
 
   useEffect(() => {
     if (isConfirming && hash) {
-      TransactionToastManager.update(`fusion-${hash}`, {
-        status: 'pending',
-        title: 'Processing fusion...',
-        description: 'Transaction is being confirmed on blockchain',
-        txHash: hash,
-        blockExplorerUrl: 'https://testnet.monvision.io'
-      })
+      toast.loading('Processing fusion...', { duration: 0 })
     }
   }, [isConfirming, hash])
 
   useEffect(() => {
     if (isConfirmed && hash) {
-      TransactionToastManager.update(`fusion-${hash}`, {
-        status: 'success',
-        title: 'Fusion successful!',
-        description: 'Your monster has evolved successfully',
-        txHash: hash,
-        blockExplorerUrl: 'https://testnet.monvision.io'
-      })
+      toast.success('Fusion successful! Your monster has evolved!')
     }
   }, [isConfirmed, hash])
 
   useEffect(() => {
     if ((writeError || receiptError) && hash) {
-      TransactionToastManager.update(`fusion-${hash}`, {
-        status: 'error',
-        title: 'Transaction failed',
-        description: writeError?.message || receiptError?.message || 'Unknown error occurred',
-        txHash: hash,
-        blockExplorerUrl: 'https://testnet.monvision.io'
-      })
+      const errorMsg = writeError?.message || receiptError?.message || 'Transaction failed'
+      toast.error(`Transaction failed: ${errorMsg}`)
     }
   }, [writeError, receiptError, hash])
 

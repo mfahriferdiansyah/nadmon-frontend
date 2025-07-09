@@ -151,7 +151,7 @@ export function MobileShopPopup({
         description: error || 'Something went wrong',
       })
     }
-  }, [state, error, currentToastId, selectedPack, onPackSelect, onPackPurchased, reset])
+  }, [state, error, currentToastId, selectedPack, onPackSelect, onPackPurchased, reset, packId])
 
   const handleCategoryClick = (category: ShopCategory) => {
     const categoryData = SHOP_CATEGORIES.find(c => c.id === category)
@@ -174,23 +174,20 @@ export function MobileShopPopup({
       </div>
       
       {/* Popup Container */}
-      <div className="relative w-full max-w-lg h-full max-h-[92vh] glass-panel rounded-t-2xl rounded-b-xl backdrop-blur-lg bg-white/10 border border-white/20 shadow-2xl overflow-hidden flex flex-col">
+      <div className="relative w-full max-w-lg h-full max-h-[95vh] glass-panel rounded-t-2xl rounded-b-xl backdrop-blur-lg bg-white/10 border border-white/20 shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/20">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-blue-500/30 to-purple-500/30 flex items-center justify-center backdrop-blur-sm">
-              <ShoppingCart className="w-4 h-4 text-blue-300" />
+        <div className="flex items-center justify-between p-2 border-b border-white/20">
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 rounded bg-gradient-to-r from-blue-500/30 to-purple-500/30 flex items-center justify-center">
+              <ShoppingCart className="w-2.5 h-2.5 text-blue-300" />
             </div>
-            <div>
-              <h2 className="text-lg font-bold text-white">Monster Shop</h2>
-              <p className="text-white/70 text-xs">Discover powerful creatures</p>
-            </div>
+            <h2 className="text-sm font-bold text-white">Monster Shop</h2>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-white/10 transition-colors text-white"
+            className="p-1 rounded hover:bg-white/10 transition-colors text-white"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
@@ -207,7 +204,7 @@ export function MobileShopPopup({
                   key={category.id}
                   onClick={() => handleCategoryClick(category.id)}
                   disabled={isLocked}
-                  className={`relative flex items-center gap-2 px-4 py-3 text-sm font-bold transition-all whitespace-nowrap min-w-fit ${
+                  className={`relative flex items-center gap-1 px-2 py-1.5 text-xs font-medium transition-all whitespace-nowrap min-w-fit ${
                     isActive 
                       ? 'text-white border-b-2 border-blue-400 bg-white/10' 
                       : isLocked
@@ -215,9 +212,9 @@ export function MobileShopPopup({
                         : 'text-white/70 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-blue-400' : isLocked ? 'text-white/30' : 'text-white/70'}`} />
+                  <Icon className={`w-2.5 h-2.5 ${isActive ? 'text-blue-400' : isLocked ? 'text-white/30' : 'text-white/70'}`} />
                   {category.name}
-                  {isLocked && <Lock className="w-3 h-3 text-amber-400" />}
+                  {isLocked && <Lock className="w-2 h-2 text-amber-400" />}
                 </button>
               )
             })}
@@ -226,128 +223,28 @@ export function MobileShopPopup({
 
         {/* Connection Warning */}
         {(!isConnected || !isOnCorrectChain) && (
-          <div className="bg-gradient-to-r from-red-500/20 to-orange-500/20 border-l-4 border-red-400 p-4 m-4 rounded-lg">
-            <div className="flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
-              <div>
-                <p className="text-red-200 font-medium text-sm">
-                  {!isConnected ? 'Wallet not connected' : 'Wrong network'}
-                </p>
-                <p className="text-red-300/80 text-xs">
-                  {!isConnected ? 'Connect your wallet to make purchases' : 'Switch to Monad Testnet to continue'}
-                </p>
-              </div>
+          <div className="bg-gradient-to-r from-red-500/20 to-orange-500/20 border-l-2 border-red-400 p-2 m-2 rounded">
+            <div className="flex items-center gap-1.5">
+              <AlertCircle className="w-3 h-3 text-red-400 flex-shrink-0" />
+              <p className="text-red-200 font-medium text-xs">
+                {!isConnected ? 'Connect wallet to purchase' : 'Switch to Monad Testnet'}
+              </p>
             </div>
           </div>
         )}
 
-        {/* Selected Pack Details (Collapsible) */}
+        {/* Selected Pack Display */}
         {selectedPack && (
-          <div className="border-b border-white/20 bg-white/5">
-            <button
-              onClick={() => setShowPackDetails(!showPackDetails)}
-              className="w-full flex items-center justify-between p-4 text-white hover:bg-white/5 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-white/10 border border-white/30 flex items-center justify-center">
-                  {getRarityIcon(selectedPack.id)}
-                </div>
-                <div className="text-left">
-                  <h3 className="font-semibold text-sm">{selectedPack.name}</h3>
-                  <p className="text-white/60 text-xs">Selected Pack</p>
-                </div>
+          <div className="border-b border-white/20 bg-white/5 p-2">
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded bg-white/10 border border-white/30 flex items-center justify-center">
+                {getRarityIcon(selectedPack.id)}
               </div>
-              {showPackDetails ? (
-                <ChevronUp className="w-4 h-4 text-white/60" />
-              ) : (
-                <ChevronDown className="w-4 h-4 text-white/60" />
-              )}
-            </button>
-            
-            {showPackDetails && (
-              <div className="px-4 pb-4">
-                <div className="bg-white/5 rounded-lg p-3 border border-white/20">
-                  <p className="text-white/80 text-sm mb-3">{selectedPack.description}</p>
-                  
-                  {/* Payment Options */}
-                  <div className="grid grid-cols-2 gap-2 mb-3">
-                    <button
-                      onClick={() => setPaymentMethod('MON')}
-                      className={`py-3 px-3 rounded-lg text-xs font-bold transition-all ${
-                        paymentMethod === 'MON'
-                          ? 'bg-purple-500 text-white border border-purple-400'
-                          : 'bg-white/10 text-white/70 hover:bg-white/20 border border-white/20'
-                      }`}
-                    >
-                      <div className="flex items-center justify-center gap-2">
-                        <Image src="/token/mon.png" alt="MON" width={16} height={16} className="w-4 h-4" />
-                        {selectedPack.price.mon} MON
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => setPaymentMethod('COOKIES')}
-                      className={`py-3 px-3 rounded-lg text-xs font-bold transition-all ${
-                        paymentMethod === 'COOKIES'
-                          ? 'bg-orange-500 text-white border border-orange-400'
-                          : 'bg-white/10 text-white/70 hover:bg-white/20 border border-white/20'
-                      }`}
-                    >
-                      <div className="flex items-center justify-center gap-2">
-                        <Image src="/token/cookies.png" alt="COOKIES" width={16} height={16} className="w-4 h-4" />
-                        {selectedPack.price.cookies} COOKIES
-                      </div>
-                    </button>
-                  </div>
-
-                  {/* Buy Button */}
-                  <button
-                    onClick={handleBuyPack}
-                    disabled={!canPurchase}
-                    className={`w-full py-4 px-4 rounded-lg font-bold transition-all text-sm flex items-center justify-center gap-2 ${
-                      !canPurchase
-                        ? 'bg-white/10 text-white/50 cursor-not-allowed border border-white/20'
-                        : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 border border-blue-500 shadow-lg'
-                    }`}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        {state === 'pending' ? 'Confirm in Wallet...' : 'Processing...'}
-                      </>
-                    ) : isOpening ? (
-                      <>
-                        <Package className="w-4 h-4 animate-bounce" />
-                        Opening Pack...
-                      </>
-                    ) : !isConnected ? (
-                      <>
-                        <Wallet className="w-4 h-4" />
-                        Connect Wallet First
-                      </>
-                    ) : !isOnCorrectChain ? (
-                      <>
-                        <AlertCircle className="w-4 h-4" />
-                        Switch to Monad Testnet
-                      </>
-                    ) : selectedPack?.locked ? (
-                      <>
-                        <Lock className="w-4 h-4" />
-                        Coming Soon
-                      </>
-                    ) : (
-                      <>
-                        <ShoppingCart className="w-4 h-4" />
-                        Buy with {paymentMethod}
-                      </>
-                    )}
-                  </button>
-                  
-                  <p className="text-white/60 text-xs text-center mt-2">
-                    NFTs minted to your wallet
-                  </p>
-                </div>
+              <div className="text-left">
+                <h3 className="font-medium text-xs text-white">{selectedPack.name}</h3>
+                <p className="text-white/60 text-xs">Selected Pack</p>
               </div>
-            )}
+            </div>
           </div>
         )}
 
@@ -355,15 +252,14 @@ export function MobileShopPopup({
         <div className="flex-1 overflow-hidden">
           {activeCategory === 'pack' ? (
             <div className="h-full flex flex-col">
-              <div className="p-4 border-b border-white/20 bg-white/5">
-                <h3 className="text-base font-semibold text-white mb-1">
+              <div className="p-2 border-b border-white/20 bg-white/5">
+                <h3 className="text-xs font-medium text-white">
                   Booster Packs ({PACK_TYPES.length} available)
                 </h3>
-                <p className="text-white/70 text-xs">Each pack contains 5 powerful monster cards</p>
               </div>
               
-              <div className="flex-1 overflow-y-auto p-4">
-                <div className="grid grid-cols-2 gap-3 pb-20">
+              <div className="flex-1 overflow-y-auto p-2">
+                <div className="grid grid-cols-2 gap-1.5 pb-4">
                   {PACK_TYPES.map((pack: PackType) => {
                     const isSelected = selectedPack?.id === pack.id
                     const isLocked = pack.locked
@@ -371,7 +267,7 @@ export function MobileShopPopup({
                     return (
                       <div
                         key={pack.id}
-                        className={`bg-white/5 backdrop-blur-md border rounded-lg p-3 transition-all duration-300 cursor-pointer relative ${
+                        className={`bg-white/5 backdrop-blur-md border rounded p-1.5 transition-all duration-300 cursor-pointer relative ${
                           isSelected 
                             ? 'border-blue-400/80 bg-blue-400/20 shadow-lg shadow-blue-400/20' 
                             : isLocked
@@ -382,36 +278,35 @@ export function MobileShopPopup({
                       >
                         {/* Lock Overlay */}
                         {isLocked && (
-                          <div className="absolute inset-0 bg-black/30 rounded-lg flex items-center justify-center z-10">
+                          <div className="absolute inset-0 bg-black/30 rounded flex items-center justify-center z-10">
                             <div className="text-center">
-                              <Lock className="w-4 h-4 text-white/60 mx-auto mb-1" />
-                              <p className="text-white/60 text-xs font-medium">Coming Soon</p>
+                              <Lock className="w-2.5 h-2.5 text-white/60 mx-auto mb-0.5" />
+                              <p className="text-white/60 text-xs font-medium">Soon</p>
                             </div>
                           </div>
                         )}
 
                         {/* Pack Header */}
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="w-8 h-8 rounded bg-white/10 border border-white/30 flex items-center justify-center">
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="w-5 h-5 rounded bg-white/10 border border-white/30 flex items-center justify-center">
                             {getRarityIcon(pack.id)}
                           </div>
                           {!isLocked && (
                             <div className="text-right">
-                              <div className="text-green-400 font-bold text-xs">AVAILABLE</div>
+                              <div className="text-green-400 font-bold text-xs">✓</div>
                             </div>
                           )}
                         </div>
 
-                        <div className="mb-2">
-                          <h4 className="text-white font-bold text-sm">{pack.name}</h4>
-                          <p className="text-white/70 text-xs line-clamp-2">{pack.description}</p>
+                        <div className="mb-1">
+                          <h4 className="text-white font-bold text-xs">{pack.name}</h4>
                         </div>
 
                         {/* Pack Preview */}
-                        <div className="bg-white/5 rounded p-2 border border-white/20 mb-2">
-                          <div className="flex items-center justify-center py-2">
-                            <div className="w-6 h-8 rounded border border-white/30 bg-white/10 flex items-center justify-center">
-                              <Package className="w-3 h-3 text-white" />
+                        <div className="bg-white/5 rounded p-1 border border-white/20 mb-1">
+                          <div className="flex items-center justify-center">
+                            <div className="w-4 h-5 rounded border border-white/30 bg-white/10 flex items-center justify-center">
+                              <Package className="w-2 h-2 text-white" />
                             </div>
                           </div>
                           <div className="text-center text-white/80 text-xs">5 Cards</div>
@@ -419,23 +314,23 @@ export function MobileShopPopup({
 
                         {/* Selection Indicator */}
                         {isSelected && (
-                          <div className="absolute -top-1 -right-1 z-10">
-                            <div className="bg-blue-400 text-white rounded-full p-1 border border-blue-400/30 shadow-lg">
-                              <Star className="w-2 h-2" />
+                          <div className="absolute -top-0.5 -right-0.5 z-10">
+                            <div className="bg-blue-400 text-white rounded-full p-0.5 border border-blue-400/30 shadow-lg">
+                              <Star className="w-1.5 h-1.5" />
                             </div>
                           </div>
                         )}
 
                         {/* Price */}
                         {!isLocked && (
-                          <div className="space-y-1">
-                            <div className="text-purple-400 font-bold text-xs flex items-center justify-center gap-1">
-                              <Image src="/token/mon.png" alt="MON" width={12} height={12} className="w-3 h-3" />
-                              {pack.price.mon} MON
+                          <div className="grid grid-cols-2 gap-0.5">
+                            <div className="text-purple-400 font-bold text-xs flex items-center justify-center gap-0.5">
+                              <Image src="/token/mon.png" alt="MON" width={8} height={8} className="w-2 h-2" />
+                              {pack.price.mon}
                             </div>
-                            <div className="text-orange-400 font-bold text-xs flex items-center justify-center gap-1">
-                              <Image src="/token/cookies.png" alt="COOKIES" width={12} height={12} className="w-3 h-3" />
-                              {pack.price.cookies} COOKIES
+                            <div className="text-orange-400 font-bold text-xs flex items-center justify-center gap-0.5">
+                              <Image src="/token/cookies.png" alt="COOKIES" width={8} height={8} className="w-2 h-2" />
+                              {pack.price.cookies}
                             </div>
                           </div>
                         )}
@@ -447,25 +342,143 @@ export function MobileShopPopup({
             </div>
           ) : (
             <div className="flex items-center justify-center h-full text-white/50">
-              <div className="text-center p-8">
-                <Lock className="w-12 h-12 mx-auto mb-3 opacity-50 text-amber-400" />
-                <h4 className="text-lg font-semibold mb-2">Coming Soon</h4>
-                <p className="text-sm">This category will be available in a future update</p>
+              <div className="text-center p-4">
+                <Lock className="w-8 h-8 mx-auto mb-2 opacity-50 text-amber-400" />
+                <h4 className="text-sm font-semibold mb-1">Coming Soon</h4>
+                <p className="text-xs">Available in future update</p>
               </div>
             </div>
           )}
         </div>
 
-        {/* Bottom Action Bar */}
-        <div className="p-4 bg-white/5 border-t border-white/20">
+        {/* Bottom Buy Buttons */}
+        <div className="p-3 bg-white/5 border-t border-white/20">
+          {!selectedPack ? (
+            <div className="text-center">
+              <button
+                disabled
+                className="w-full py-3 px-4 rounded-lg bg-white/10 text-white/50 cursor-not-allowed border border-white/20 font-medium text-sm"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <Package className="w-4 h-4" />
+                  Select a Pack
+                </div>
+              </button>
+              <p className="text-white/60 text-xs mt-1">Choose a pack above to continue</p>
+            </div>
+          ) : !isConnected ? (
+            <div className="text-center">
+              <button
+                disabled
+                className="w-full py-3 px-4 rounded-lg bg-white/10 text-white/50 cursor-not-allowed border border-white/20 font-medium text-sm"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <Wallet className="w-4 h-4" />
+                  Connect Wallet
+                </div>
+              </button>
+              <p className="text-white/60 text-xs mt-1">Connect your wallet to purchase</p>
+            </div>
+          ) : !isOnCorrectChain ? (
+            <div className="text-center">
+              <button
+                disabled
+                className="w-full py-3 px-4 rounded-lg bg-white/10 text-white/50 cursor-not-allowed border border-white/20 font-medium text-sm"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <AlertCircle className="w-4 h-4" />
+                  Wrong Network
+                </div>
+              </button>
+              <p className="text-white/60 text-xs mt-1">Switch to Monad Testnet</p>
+            </div>
+          ) : selectedPack?.locked ? (
+            <div className="text-center">
+              <button
+                disabled
+                className="w-full py-3 px-4 rounded-lg bg-white/10 text-white/50 cursor-not-allowed border border-white/20 font-medium text-sm"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <Lock className="w-4 h-4" />
+                  Coming Soon
+                </div>
+              </button>
+              <p className="text-white/60 text-xs mt-1">This pack will be available soon</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => {
+                    setPaymentMethod('MON')
+                    handleBuyPack()
+                  }}
+                  disabled={isLoading || isOpening}
+                  className={`py-2 px-2.5 rounded-lg font-bold transition-all text-xs flex items-center justify-center gap-1.5 backdrop-blur-sm ${
+                    isLoading && paymentMethod === 'MON'
+                      ? 'bg-purple-500/30 text-white/70 cursor-not-allowed border border-purple-400/30'
+                      : 'bg-purple-500/20 text-white hover:bg-purple-500/30 border border-purple-400/30 hover:border-purple-400/50'
+                  }`}
+                >
+                  {isLoading && paymentMethod === 'MON' ? (
+                    <>
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      {state === 'pending' ? 'Confirm...' : 'Processing...'}
+                    </>
+                  ) : isOpening ? (
+                    <>
+                      <Package className="w-3 h-3 animate-bounce" />
+                      Opening...
+                    </>
+                  ) : (
+                    <>
+                      <Image src="/token/mon.png" alt="MON" width={12} height={12} className="w-3 h-3" />
+                      {selectedPack.price.mon} MON
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    setPaymentMethod('COOKIES')
+                    handleBuyPack()
+                  }}
+                  disabled={isLoading || isOpening}
+                  className={`py-2 px-2.5 rounded-lg font-bold transition-all text-xs flex items-center justify-center gap-1.5 backdrop-blur-sm ${
+                    isLoading && paymentMethod === 'COOKIES'
+                      ? 'bg-orange-500/30 text-white/70 cursor-not-allowed border border-orange-400/30'
+                      : 'bg-orange-500/20 text-white hover:bg-orange-500/30 border border-orange-400/30 hover:border-orange-400/50'
+                  }`}
+                >
+                  {isLoading && paymentMethod === 'COOKIES' ? (
+                    <>
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      {state === 'pending' ? 'Confirm...' : 'Processing...'}
+                    </>
+                  ) : isOpening ? (
+                    <>
+                      <Package className="w-3 h-3 animate-bounce" />
+                      Opening...
+                    </>
+                  ) : (
+                    <>
+                      <Image src="/token/cookies.png" alt="COOKIES" width={12} height={12} className="w-3 h-3" />
+                      {selectedPack.price.cookies} COOKIES
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {/* Close Button */}
           <button
             onClick={onClose}
-            className="w-full py-3 px-4 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors font-medium"
+            className="w-full mt-2 py-2 px-3 rounded-lg bg-white/10 text-white/70 hover:bg-white/20 transition-colors font-medium text-xs"
           >
             Close Shop
           </button>
         </div>
-        
+
         <style jsx>{`
           .glass-panel {
             backdrop-filter: blur(10px);

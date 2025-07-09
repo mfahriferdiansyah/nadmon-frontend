@@ -100,19 +100,38 @@ function TransactionToastContent({ data }: { data: TransactionToastData }) {
 
 export class TransactionToastManager {
   private static activeToasts = new Map<string, string | number>()
+  private static cleanupTimers = new Map<string, NodeJS.Timeout>()
 
   static show(data: TransactionToastData): string | number {
+    const isInfinite = data.status === 'loading' || data.status === 'pending'
     const toastId = toast.custom(() => <TransactionToastContent data={data} />, {
       id: data.id,
-      duration: data.status === 'loading' || data.status === 'pending' ? Infinity : 5000,
+      duration: isInfinite ? Infinity : 5000,
       position: 'top-right',
     })
 
     this.activeToasts.set(data.id, toastId)
+    
+    // Auto-cleanup infinite toasts after 60 seconds to prevent permanent stuck toasts
+    if (isInfinite) {
+      const cleanup = setTimeout(() => {
+        this.dismiss(data.id)
+      }, 60000) // 60 seconds max for loading/pending states
+      
+      this.cleanupTimers.set(data.id, cleanup)
+    }
+    
     return toastId
   }
 
   static update(id: string, updates: Partial<TransactionToastData>) {
+    // Clear any existing cleanup timer since we're updating
+    const cleanupTimer = this.cleanupTimers.get(id)
+    if (cleanupTimer) {
+      clearTimeout(cleanupTimer)
+      this.cleanupTimers.delete(id)
+    }
+    
     const existingToastId = this.activeToasts.get(id)
     if (existingToastId) {
       toast.dismiss(existingToastId)
@@ -123,6 +142,13 @@ export class TransactionToastManager {
   }
 
   static dismiss(id: string) {
+    // Clear cleanup timer
+    const cleanupTimer = this.cleanupTimers.get(id)
+    if (cleanupTimer) {
+      clearTimeout(cleanupTimer)
+      this.cleanupTimers.delete(id)
+    }
+    
     const toastId = this.activeToasts.get(id)
     if (toastId) {
       toast.dismiss(toastId)

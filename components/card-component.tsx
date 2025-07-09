@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import { useState } from "react"
 import { Zap, Sword, Shield, Heart, Eye, X, Package, Flame, Droplets, Leaf, Brain, Mountain, Bug, Target, UserX, Merge } from "lucide-react"
 import Image from "next/image"
 import type { PokemonCard, CardComponentProps } from "@/types/card"
@@ -506,13 +507,15 @@ export function MonsterCard({
   }
 
   const isCompact = variant === "compact"
+  const isMicro = variant === "micro"
+  const isNano = variant === "nano"
   const isBattle = variant === "battle"
   const isHorizontal = variant === "equipped-horizontal"
 
   // Get type icon with proper sizing and circular background
-  const getTypeIcon = (size: "sm" | "md" = "sm") => {
-    const sizeClass = size === "sm" ? "w-3 h-3" : "w-4 h-4"
-    const bgSize = size === "sm" ? "w-6 h-6" : "w-8 h-8"
+  const getTypeIcon = (size: "sm" | "md" | "xs" | "xxs" = "sm") => {
+    const sizeClass = size === "xxs" ? "w-1.5 h-1.5" : size === "xs" ? "w-2 h-2" : size === "sm" ? "w-3 h-3" : "w-4 h-4"
+    const bgSize = size === "xxs" ? "w-3 h-3" : size === "xs" ? "w-4 h-4" : size === "sm" ? "w-6 h-6" : "w-8 h-8"
     
     const iconElement = (() => {
       switch (card.type.toLowerCase()) {
@@ -609,34 +612,36 @@ export function MonsterCard({
               />
             </div>
 
-            {/* Fusion Progress Bar - Below image */}
-            <div className="w-20">
-              <div className="w-full bg-gray-700/50 rounded-full h-1">
-                <div 
-                  className={`h-1 rounded-full transition-all duration-300 ${
-                    (card.fusion || 0) >= 10 
-                      ? 'bg-gradient-to-r from-yellow-400 to-orange-400' 
-                      : 'bg-gradient-to-r from-blue-400 to-purple-400'
-                  }`}
-                  style={{ width: `${Math.min((card.fusion || 0) / 10 * 100, 100)}%` }}
-                />
+            {/* Fusion Progress Bar - Below image - Hidden in fusion context */}
+            {showActions && (
+              <div className="w-20">
+                <div className="w-full bg-gray-700/50 rounded-full h-1">
+                  <div 
+                    className={`h-1 rounded-full transition-all duration-300 ${
+                      (card.fusion || 0) >= 10 
+                        ? 'bg-gradient-to-r from-yellow-400 to-orange-400' 
+                        : 'bg-gradient-to-r from-blue-400 to-purple-400'
+                    }`}
+                    style={{ width: `${Math.min((card.fusion || 0) / 10 * 100, 100)}%` }}
+                  />
+                </div>
+                <div className={`text-xs text-center mt-0.5 ${
+                  (card.fusion || 0) >= 10 ? 'text-yellow-400 font-bold' : 'text-white/60'
+                }`}>
+                  {(card.fusion || 0) >= 10 ? 'MAX' : `${card.fusion || 0}/10`}
+                </div>
               </div>
-              <div className={`text-xs text-center mt-0.5 ${
-                (card.fusion || 0) >= 10 ? 'text-yellow-400 font-bold' : 'text-white/60'
-              }`}>
-                {(card.fusion || 0) >= 10 ? 'MAX' : `${card.fusion || 0}/10`}
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Card Info - More compact without progress bar */}
           <div className="flex-1 min-w-0 flex flex-col justify-between">
             {/* Name and Token ID */}
-            <div>
-              <h4 className="font-semibold text-white text-sm truncate text-center uppercase">
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold text-white text-sm truncate uppercase">
                 {card.name}
               </h4>
-              <div className="text-xs text-white/60 text-center">#{card.id}</div>
+              <div className="text-xs text-white/60">#{card.id}</div>
             </div>
 
             {/* Horizontal Stats - Better arranged */}
@@ -686,13 +691,59 @@ export function MonsterCard({
     )
   }
 
+  // Gesture handling for nano variant
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null)
+  const [isLongPressing, setIsLongPressing] = useState(false)
+
+  const handleNanoClick = (e: React.MouseEvent) => {
+    if (isNano && !isLongPressing) {
+      // Prevent both nano click and button click from firing
+      e.stopPropagation()
+      handleEquipToggle()
+    }
+  }
+
+  const handleNanoLongPress = () => {
+    if (isNano && isEquipped && onMerge) {
+      onMerge()
+    } else if (isNano && !isEquipped && onSummon) {
+      onSummon()
+    }
+  }
+
+  const handleTouchStart = () => {
+    if (isNano) {
+      setIsLongPressing(false)
+      const timer = setTimeout(() => {
+        setIsLongPressing(true)
+        handleNanoLongPress()
+        // Add haptic feedback if available
+        if (navigator.vibrate) {
+          navigator.vibrate(50)
+        }
+      }, 500) // 500ms for long press
+      setLongPressTimer(timer)
+    }
+  }
+
+  const handleTouchEnd = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer)
+      setLongPressTimer(null)
+    }
+    // Small delay to prevent click after long press
+    setTimeout(() => setIsLongPressing(false), 100)
+  }
+
   return (
     <div 
       className={`relative transition-all duration-300 ${
         isBattle ? "hover:scale-110" : "hover:scale-105"
       } ${
         isEquipped ? "ring-2 ring-gray-300 shadow-lg shadow-gray-300/50" : ""
-      } ${className} rounded-lg p-2 border ${
+      } ${className} rounded-lg ${
+        isNano ? "p-0.5" : isMicro ? "p-1" : "p-2"
+      } border ${
         MAIN_SCREEN_RARITY_STYLES[card.rarity].border
       } ${
         // Add transparent colored background based on rarity
@@ -704,10 +755,23 @@ export function MonsterCard({
       } backdrop-blur-sm ${
         MAIN_SCREEN_RARITY_STYLES[card.rarity].glow
       }`}
+      onClick={isNano && showActions ? handleNanoClick : undefined}
+      onTouchStart={isNano && showActions ? handleTouchStart : undefined}
+      onTouchEnd={isNano && showActions ? handleTouchEnd : undefined}
+      onTouchCancel={isNano && showActions ? handleTouchEnd : undefined}
+      onContextMenu={isNano && showActions ? (e) => { e.preventDefault(); } : undefined}
+      style={{
+        cursor: isNano && showActions ? 'pointer' : 'default',
+        WebkitTouchCallout: isNano && showActions ? 'none' : 'default',
+        WebkitUserSelect: isNano && showActions ? 'none' : 'auto',
+        userSelect: isNano && showActions ? 'none' : 'auto'
+      }}
     >
       {/* Card Image - Blurred background effect */}
-      <div className={`relative mb-3 rounded-lg overflow-hidden ${
-        isCompact ? "w-full h-28" : "w-full h-36"
+      <div className={`relative ${
+        isNano ? "mb-0.5" : isMicro ? "mb-1" : "mb-3"
+      } rounded-lg overflow-hidden ${
+        isNano ? "w-full h-14" : isMicro ? "w-full h-20" : isCompact ? "w-full h-28" : "w-full h-36"
       }`}>
         {/* Blurred background layer */}
         <div className="absolute inset-0">
@@ -735,13 +799,19 @@ export function MonsterCard({
         />
         
         {/* Element icon - Top left corner with circular background */}
-        <div className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-black/60 flex items-center justify-center z-20">
-          {getTypeIcon("sm")}
+        <div className={`absolute top-0.5 left-0.5 rounded-full bg-black/60 flex items-center justify-center z-20 ${
+          isNano ? "w-3 h-3" : isMicro ? "w-4 h-4" : "w-5 h-5"
+        }`}>
+          {getTypeIcon(isNano ? "xxs" : isMicro ? "xs" : "sm")}
         </div>
         
         {/* Rarity indicator - bottom right with matching colors */}
-        <div className="absolute bottom-2 right-2 z-20">
-          <div className={`text-xs px-1 py-0.5 rounded ${MAIN_SCREEN_RARITY_STYLES[card.rarity].bg} ${MAIN_SCREEN_RARITY_STYLES[card.rarity].text} font-bold`}>
+        <div className={`absolute z-20 ${
+          isNano ? "bottom-0.5 right-0.5" : isMicro ? "bottom-1 right-1" : "bottom-2 right-2"
+        }`}>
+          <div className={`${
+            isNano ? "text-xs px-0.5 py-0" : isMicro ? "text-xs px-0.5 py-0.5" : "text-xs px-1 py-0.5"
+          } rounded ${MAIN_SCREEN_RARITY_STYLES[card.rarity].bg} ${MAIN_SCREEN_RARITY_STYLES[card.rarity].text} font-bold`}>
             {card.rarity.charAt(0).toUpperCase()}
           </div>
         </div>
@@ -760,37 +830,106 @@ export function MonsterCard({
       </div>
 
       {/* Card Info */}
-      <div className="space-y-2">
+      <div className={isNano ? "space-y-0.5" : isMicro ? "space-y-1" : "space-y-2"}>
         <div>
-          <h4 className={`font-semibold text-white ${
-            isCompact ? "text-xs" : "text-sm"
-          } truncate text-center uppercase`}>
-            {card.name}
-          </h4>
-          <div className="text-xs text-white/60 text-center">#{card.id}</div>
+          {!isNano && (
+            <h4 className={`font-semibold text-white ${
+              isMicro ? "text-xs" : isCompact ? "text-xs" : "text-sm"
+            } truncate text-center uppercase`}>
+              {card.name}
+            </h4>
+          )}
+          {!isMicro && !isNano && <div className="text-xs text-white/60 text-center">#{card.id}</div>}
           
           {/* Fusion Progress Bar replacing rarity and type */}
-          <div className="mt-2 space-y-1">
-            <div className="w-full bg-gray-700/50 rounded-full h-2">
-              <div 
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  (card.fusion || 0) >= 10 
-                    ? 'bg-gradient-to-r from-yellow-400 to-orange-400' 
-                    : 'bg-gradient-to-r from-blue-400 to-purple-400'
-                }`}
-                style={{ width: `${Math.min((card.fusion || 0) / 10 * 100, 100)}%` }}
-              />
+          {!isMicro && !isNano && (
+            <div className="mt-2 space-y-1">
+              <div className="w-full bg-gray-700/50 rounded-full h-2">
+                <div 
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    (card.fusion || 0) >= 10 
+                      ? 'bg-gradient-to-r from-yellow-400 to-orange-400' 
+                      : 'bg-gradient-to-r from-blue-400 to-purple-400'
+                  }`}
+                  style={{ width: `${Math.min((card.fusion || 0) / 10 * 100, 100)}%` }}
+                />
+              </div>
+              <div className={`text-xs text-center ${
+                (card.fusion || 0) >= 10 ? 'text-yellow-400 font-bold' : 'text-white/60'
+              }`}>
+                {(card.fusion || 0) >= 10 ? 'MAX' : `${card.fusion || 0}/10`}
+              </div>
             </div>
-            <div className={`text-xs text-center ${
-              (card.fusion || 0) >= 10 ? 'text-yellow-400 font-bold' : 'text-white/60'
-            }`}>
-              {(card.fusion || 0) >= 10 ? 'MAX' : `${card.fusion || 0}/10`}
+          )}
+          
+          {/* Nano Fusion Progress Bar - Compact version */}
+          {isNano && (
+            <div className="mt-0.5 space-y-0.5">
+              <div className="w-full bg-gray-700/50 rounded-full h-1">
+                <div 
+                  className={`h-1 rounded-full transition-all duration-300 ${
+                    (card.fusion || 0) >= 10 
+                      ? 'bg-gradient-to-r from-yellow-400 to-orange-400' 
+                      : 'bg-gradient-to-r from-blue-400 to-purple-400'
+                  }`}
+                  style={{ width: `${Math.min((card.fusion || 0) / 10 * 100, 100)}%` }}
+                />
+              </div>
+              <div className={`text-center ${
+                (card.fusion || 0) >= 10 ? 'text-yellow-400 font-bold' : 'text-white/60'
+              }`} style={{fontSize: '8px'}}>
+                {(card.fusion || 0) >= 10 ? 'MAX' : `${card.fusion || 0}/10`}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Stats - Better arranged layout */}
-        {isCompact ? (
+        {isNano ? (
+          // Nano stats - Fixed width containers for consistent icon sizing
+          <div className="grid grid-cols-2 gap-0.5 px-0.5">
+            <div className="flex items-center bg-black/20 rounded py-0.5 px-1 w-full">
+              <div className="w-3 h-3 flex-shrink-0 flex items-center justify-center mr-1">
+                <Heart className="w-3 h-3 text-red-500 flex-shrink-0" style={{minWidth: '12px', minHeight: '12px'}} />
+              </div>
+              <span className="text-white/60 font-normal leading-none flex-shrink-0" style={{fontSize: '9px'}}>{card.hp}</span>
+            </div>
+            <div className="flex items-center bg-black/20 rounded py-0.5 px-1 w-full">
+              <div className="w-3 h-3 flex-shrink-0 flex items-center justify-center mr-1">
+                <Sword className="w-3 h-3 text-orange-500 flex-shrink-0" style={{minWidth: '12px', minHeight: '12px'}} />
+              </div>
+              <span className="text-white/60 font-normal leading-none flex-shrink-0" style={{fontSize: '9px'}}>{card.attack}</span>
+            </div>
+            <div className="flex items-center bg-black/20 rounded py-0.5 px-1 w-full">
+              <div className="w-3 h-3 flex-shrink-0 flex items-center justify-center mr-1">
+                <Shield className="w-3 h-3 text-blue-500 flex-shrink-0" style={{minWidth: '12px', minHeight: '12px'}} />
+              </div>
+              <span className="text-white/60 font-normal leading-none flex-shrink-0" style={{fontSize: '9px'}}>{card.defense}</span>
+            </div>
+            <div className="flex items-center bg-black/20 rounded py-0.5 px-1 w-full">
+              <div className="w-3 h-3 flex-shrink-0 flex items-center justify-center mr-1">
+                <Target className="w-3 h-3 text-purple-500 flex-shrink-0" style={{minWidth: '12px', minHeight: '12px'}} />
+              </div>
+              <span className="text-white/60 font-normal leading-none flex-shrink-0" style={{fontSize: '9px'}}>{card.critical}</span>
+            </div>
+          </div>
+        ) : isMicro ? (
+          // Micro stats - Horizontal single row
+          <div className="flex justify-between text-xs">
+            <div className="flex items-center gap-0.5">
+              <Heart className="w-2 h-2 text-red-400" />
+              <span className="text-white/90 font-medium text-xs">{card.hp}</span>
+            </div>
+            <div className="flex items-center gap-0.5">
+              <Sword className="w-2 h-2 text-orange-400" />
+              <span className="text-white/90 font-medium text-xs">{card.attack}</span>
+            </div>
+            <div className="flex items-center gap-0.5">
+              <Shield className="w-2 h-2 text-blue-400" />
+              <span className="text-white/90 font-medium text-xs">{card.defense}</span>
+            </div>
+          </div>
+        ) : isCompact ? (
           // Compact stats - 2x2 grid with backgrounds
           <div className="grid grid-cols-2 gap-1.5 text-xs">
             <div className="flex items-center justify-between bg-black/20 rounded px-2 py-1">
@@ -835,25 +974,39 @@ export function MonsterCard({
 
       {/* Action Buttons */}
       {showActions && (
-        <div className={`${isCompact ? "mt-2 px-0" : "mt-3 px-0"}`}>
-          <div className="flex gap-2 w-full">
+        <div className={`${isNano ? "mt-0.5 px-0" : isMicro ? "mt-1 px-0" : isCompact ? "mt-2 px-0" : "mt-3 px-0"}`}>
+          <div className={`flex ${isNano ? "gap-0.5" : isMicro ? "gap-1" : "gap-2"} w-full`}>
             <button
-              onClick={handleEquipToggle}
-              className={`flex-1 ${isCompact ? "px-2 py-1.5" : "px-3 py-2"} rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 backdrop-blur-sm ${
+              onClick={(e) => {
+                if (isNano) {
+                  e.stopPropagation()
+                }
+                handleEquipToggle()
+              }}
+              className={`flex-1 ${isNano ? "px-1.5 py-1 text-sm" : isMicro ? "px-1 py-1 text-xs" : isCompact ? "px-2 py-1.5" : "px-3 py-2"} rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 backdrop-blur-sm ${
                 isEquipped
                   ? 'bg-gradient-to-r from-red-500/30 to-red-600/30 text-red-200 hover:from-red-500/40 hover:to-red-600/40'
                   : 'bg-gradient-to-r from-blue-500/30 to-blue-600/30 text-blue-200 hover:from-blue-500/40 hover:to-blue-600/40'
               }`}
             >
-              {isEquipped ? 'Unequip' : 'Equip'}
+              {isNano ? (isEquipped ? '−' : '+') : isMicro ? (isEquipped ? 'Un' : 'Eq') : (isEquipped ? 'Unequip' : 'Equip')}
             </button>
             
             {isEquipped && onMerge && (
               <button
-                onClick={onMerge}
-                className={`${isCompact ? "px-2 py-1.5" : "px-3 py-2"} bg-gradient-to-r from-purple-500/30 to-purple-600/30 text-purple-200 rounded-lg text-xs font-medium hover:from-purple-500/40 hover:to-purple-600/40 hover:scale-105 transition-all duration-200 flex items-center gap-1 backdrop-blur-sm`}
+                onClick={(e) => {
+                  if (isNano) {
+                    e.stopPropagation()
+                  }
+                  onMerge()
+                }}
+                className={`${isNano ? "px-2 py-1 min-w-[36px]" : isMicro ? "px-1 py-1" : isCompact ? "px-2 py-1.5" : "px-3 py-2"} bg-gradient-to-r from-purple-500/30 to-purple-600/30 text-purple-200 rounded-lg text-xs font-medium hover:from-purple-500/40 hover:to-purple-600/40 hover:scale-105 transition-all duration-200 flex items-center justify-center gap-1 backdrop-blur-sm`}
               >
-                {isCompact ? (
+                {isNano ? (
+                  <Merge className="w-2 h-2" />
+                ) : isMicro ? (
+                  <Merge className="w-2 h-2" />
+                ) : isCompact ? (
                   <Merge className="w-3 h-3" />
                 ) : (
                   <>
@@ -866,11 +1019,16 @@ export function MonsterCard({
             
             {!isEquipped && onSummon && (
               <button
-                onClick={onSummon}
-                className={`${isCompact ? "px-3 py-1.5" : "px-4 py-2"} rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 bg-gradient-to-r from-red-600/40 to-orange-600/40 text-orange-200 hover:from-red-600/50 hover:to-orange-600/50 backdrop-blur-sm flex items-center gap-1`}
+                onClick={(e) => {
+                  if (isNano) {
+                    e.stopPropagation()
+                  }
+                  onSummon()
+                }}
+                className={`${isNano ? "px-2 py-1 min-w-[36px]" : isMicro ? "px-1 py-1" : isCompact ? "px-3 py-1.5" : "px-4 py-2"} rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105 bg-gradient-to-r from-red-600/40 to-orange-600/40 text-orange-200 hover:from-red-600/50 hover:to-orange-600/50 backdrop-blur-sm flex items-center justify-center gap-1`}
               >
-                <Flame className="w-3 h-3" />
-                Burn
+                <Flame className={isNano ? "w-2 h-2" : isMicro ? "w-2 h-2" : "w-3 h-3"} />
+                {!isNano && !isMicro && "Burn"}
               </button>
             )}
           </div>

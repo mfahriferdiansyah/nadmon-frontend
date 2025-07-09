@@ -13,6 +13,8 @@ export interface ToastOptions {
 
 class ToastService {
   private static instance: ToastService
+  private loadingToasts: Map<string, string | number> = new Map()
+  private autoCleanupTimers: Map<string, NodeJS.Timeout> = new Map()
   
   private constructor() {}
   
@@ -85,8 +87,8 @@ class ToastService {
         })
       
       case 'loading':
-        return sonnerToast.loading(message, {
-          duration: 0, // Loading toasts don't auto-dismiss
+        const loadingId = sonnerToast.loading(message, {
+          duration: 0, // Loading toasts don't auto-dismiss initially
           dismissible,
           className: getTypeClassName('loading'),
           style: {
@@ -95,6 +97,19 @@ class ToastService {
             boxShadow: '0 4px 16px rgba(0, 0, 0, 0.5), 0 0 20px rgba(59, 130, 246, 0.1), 0 1px 0 rgba(255, 255, 255, 0.05) inset',
           },
         })
+        
+        // Auto-cleanup loading toasts after 30 seconds to prevent infinite toasts
+        const cleanup = setTimeout(() => {
+          this.dismiss(loadingId)
+          this.loadingToasts.delete(String(loadingId))
+        }, 30000)
+        
+        if (typeof loadingId === 'string' || typeof loadingId === 'number') {
+          this.loadingToasts.set(String(loadingId), loadingId)
+          this.autoCleanupTimers.set(String(loadingId), cleanup)
+        }
+        
+        return loadingId
       
       default: // info
         return sonnerToast(message, {
@@ -133,11 +148,25 @@ class ToastService {
 
   // Dismiss all toasts
   public dismissAll() {
+    // Clear all timers
+    this.autoCleanupTimers.forEach(timer => clearTimeout(timer))
+    this.autoCleanupTimers.clear()
+    this.loadingToasts.clear()
     sonnerToast.dismiss()
   }
 
   // Dismiss specific toast by id
   public dismiss(id: string | number) {
+    const idStr = String(id)
+    
+    // Clear associated timer if exists
+    const timer = this.autoCleanupTimers.get(idStr)
+    if (timer) {
+      clearTimeout(timer)
+      this.autoCleanupTimers.delete(idStr)
+    }
+    
+    this.loadingToasts.delete(idStr)
     sonnerToast.dismiss(id)
   }
 
@@ -266,13 +295,35 @@ class ToastService {
   // Update loading toast to success/error
   public updateToast(id: string | number, message: string, type: ToastType) {
     this.dismiss(id)
-    this.show(message, type)
+    return this.show(message, type)
   }
 
   // Update transaction status without removing toast
   public updateTransaction(id: string | number, message: string, txHash: string, status: 'pending' | 'success' | 'error') {
     this.dismiss(id)
     return this.transaction(message, txHash, status)
+  }
+  
+  // Smart loading toast that auto-resolves to success/error
+  public smartLoading(message: string, promise: Promise<any>, successMessage?: string, errorMessage?: string) {
+    const loadingId = this.loading(message)
+    
+    promise
+      .then(() => {
+        this.dismiss(loadingId)
+        this.success(successMessage || 'Operation completed successfully')
+      })
+      .catch((error) => {
+        this.dismiss(loadingId)
+        this.error(errorMessage || error?.message || 'Operation failed')
+      })
+    
+    return loadingId
+  }
+  
+  // Graceful toast for quick actions
+  public quick(message: string, type: ToastType = 'info', duration: number = 2000) {
+    return this.show(message, type, { duration })
   }
 }
 
@@ -290,4 +341,7 @@ export const toast = {
   dismiss: (id?: string | number) => id ? toastService.dismiss(id) : toastService.dismissAll(),
   update: (id: string | number, message: string, type: ToastType) => toastService.updateToast(id, message, type),
   updateTransaction: (id: string | number, message: string, txHash: string, status: 'pending' | 'success' | 'error') => toastService.updateTransaction(id, message, txHash, status),
+  // New convenience methods
+  smartLoading: (message: string, promise: Promise<any>, successMessage?: string, errorMessage?: string) => toastService.smartLoading(message, promise, successMessage, errorMessage),
+  quick: (message: string, type?: ToastType, duration?: number) => toastService.quick(message, type, duration),
 }

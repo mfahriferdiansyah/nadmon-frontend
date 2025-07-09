@@ -82,8 +82,8 @@ export default function RootLayout({
           <Toaster 
             position="top-left"
             expand={true}
-            visibleToasts={5}
-            closeButton={false}
+            visibleToasts={4}
+            closeButton={true}
             offset="16px"
             gap={8}
             dir="ltr"
@@ -105,6 +105,7 @@ export default function RootLayout({
               },
               duration: 4000,
               className: 'toast-slide-top',
+              dismissible: true,
             }}
             richColors={false}
           />

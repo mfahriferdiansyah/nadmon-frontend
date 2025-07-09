@@ -119,7 +119,7 @@ export function MobileFusionPopup({
         </div>
         
         {/* Popup Container */}
-        <div className="relative w-full max-w-sm glass-panel rounded-t-2xl rounded-b-xl backdrop-blur-lg bg-white/10 border border-white/20 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="relative w-full max-w-md glass-panel rounded-t-2xl rounded-b-xl backdrop-blur-lg bg-white/10 border border-white/20 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-white/20">
             <div className="flex items-center gap-3">
@@ -130,7 +130,7 @@ export function MobileFusionPopup({
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <div>
-                <h2 className="text-lg font-bold text-white">Confirm Fusion</h2>
+                <h2 className="text-base font-bold text-white">Confirm Fusion</h2>
                 <p className="text-white/60 text-xs">Review your fusion</p>
               </div>
             </div>
@@ -144,12 +144,12 @@ export function MobileFusionPopup({
 
           {/* Confirmation Content */}
           <div className="flex-1 flex flex-col items-center justify-center p-6">
-            <div className="w-16 h-16 bg-gradient-to-r from-red-500/30 to-orange-500/30 rounded-full flex items-center justify-center mb-6">
-              <AlertCircle className="w-8 h-8 text-red-300" />
+            <div className="w-14 h-14 bg-gradient-to-r from-red-500/30 to-orange-500/30 rounded-full flex items-center justify-center mb-5">
+              <AlertCircle className="w-7 h-7 text-red-300" />
             </div>
             
-            <h3 className="text-xl font-bold text-white mb-4 text-center">Confirm Fusion</h3>
-            <p className="text-white/70 mb-6 text-center px-4">
+            <h3 className="text-lg font-bold text-white mb-3 text-center">Confirm Fusion</h3>
+            <p className="text-white/70 mb-5 text-center px-3">
               Are you sure you want to sacrifice <strong className="text-white">{selectedSacrifices.length} {targetCard.name}</strong> 
               {selectedSacrifices.length === 1 ? ' monster' : ' monsters'} to enhance your target <strong className="text-white">{`${targetCard.name} #${targetCard.id}`}</strong>?
             </p>
@@ -194,7 +194,7 @@ export function MobileFusionPopup({
               </div>
             </div> */}
             
-            <p className="text-red-300 text-sm mb-6 text-center px-4">
+            <p className="text-red-300 text-sm mb-5 text-center px-3">
               ⚠️ The sacrificed monsters will be permanently destroyed
             </p>
           </div>
@@ -246,7 +246,7 @@ export function MobileFusionPopup({
       </div>
       
       {/* Popup Container */}
-      <div className="relative w-full max-w-sm h-[92vh] glass-panel rounded-t-2xl rounded-b-xl backdrop-blur-lg bg-white/10 border border-white/20 shadow-2xl overflow-hidden flex flex-col">
+      <div className="relative w-full max-w-md h-[90vh] glass-panel rounded-t-2xl rounded-b-xl backdrop-blur-lg bg-white/10 border border-white/20 shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-white/20">
           <div className="flex items-center gap-3">
@@ -255,7 +255,7 @@ export function MobileFusionPopup({
             </div>
             <div>
               <h2 className="text-lg font-bold text-white">Monster Fusion</h2>
-              <p className="text-white/70 text-xs">{totalFusionPoints} fusion points total</p>
+              <p className="text-white/70 text-sm">{totalFusionPoints} fusion points total</p>
             </div>
           </div>
           <button
@@ -266,69 +266,80 @@ export function MobileFusionPopup({
           </button>
         </div>
 
-        {/* Target Card Section - Using Equipped Card Style */}
-        <div className="p-4 border-b border-white/20 bg-white/5">
-          <div className="flex items-center gap-2 mb-3">
+        {/* Target Card Section */}
+        <div className="p-2 border-b border-white/20 bg-gradient-to-r from-green-500/10 to-emerald-500/10">
+          <div className="flex items-center gap-2 mb-2">
             <Target className="w-4 h-4 text-green-400" />
-            <h3 className="text-sm font-semibold text-white">Target Monster</h3>
+            <h3 className="text-sm font-semibold text-white">Fusion Target</h3>
+            <div className="flex items-center gap-2 ml-auto">
+              <span className="text-sm text-white/70">Level:</span>
+              <span className="text-sm font-bold text-green-400">{currentFusionLevel} → {projectedFusionLevel}</span>
+            </div>
           </div>
           
-          <MobileFusionTargetCard
-            card={targetCard}
-            currentFusionLevel={currentFusionLevel}
-            maxFusionLevel={maxFusionLevel}
-            totalFusionPoints={totalFusionPoints}
-            projectedFusionLevel={projectedFusionLevel}
-            selectedSacrificesCount={selectedSacrifices.length}
-          />
+          {/* Horizontal target card display */}
+          <div className="mb-2">
+            <MonsterCard
+              card={targetCard}
+              variant="equipped-horizontal"
+              showActions={false}
+              className="ring-2 ring-green-400/70 shadow-lg shadow-green-400/20"
+              isEquipped={true}
+            />
+          </div>
+          
+          {/* Fusion Progress Bar */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-white/70">Fusion Progress</span>
+              <span className="text-xs font-bold text-green-400">{currentFusionLevel}/10 → {projectedFusionLevel}/10</span>
+            </div>
+            <div className="w-full bg-gray-700/50 rounded-full h-2">
+              <div 
+                className={`h-2 rounded-full transition-all duration-500 ${
+                  projectedFusionLevel >= 10 
+                    ? 'bg-gradient-to-r from-yellow-400 to-orange-400' 
+                    : 'bg-gradient-to-r from-green-400 to-blue-400'
+                }`}
+                style={{ width: `${Math.min(projectedFusionLevel / 10 * 100, 100)}%` }}
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Sacrifice Selection Header */}
-        <div className="p-3 border-b border-white/20 bg-white/5">
-          <div className="flex items-center justify-between mb-2">
+        {/* Selection Info */}
+        <div className="px-4 py-3 border-b border-white/20 bg-white/5">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Flame className="w-4 h-4 text-red-400" />
-              <h3 className="text-sm font-semibold text-white">
-                Sacrifices ({compatibleMonsters.length})
-              </h3>
+              <span className="text-sm font-medium text-white">Selected: {selectedSacrifices.length}</span>
+              <span className="text-sm text-white/60">of {compatibleMonsters.length} available</span>
             </div>
-            
-            <div className="flex items-center gap-2">
-              {selectedSacrifices.length > 0 && (
-                <>
-                  <div className="flex items-center gap-1 bg-green-500/20 px-2 py-0.5 rounded-full">
-                    <Check className="w-3 h-3 text-green-400" />
-                    <span className="text-green-300 text-xs font-medium">{selectedSacrifices.length}</span>
-                  </div>
-                  <button
-                    onClick={handleClearSelection}
-                    className="p-1 rounded hover:bg-white/10 transition-colors"
-                    title="Clear selection"
-                  >
-                    <Trash2 className="w-3 h-3 text-red-400" />
-                  </button>
-                </>
-              )}
-            </div>
+            {selectedSacrifices.length > 0 && (
+              <button
+                onClick={handleClearSelection}
+                className="px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 transition-colors flex items-center gap-1"
+                title="Clear selection"
+              >
+                <Trash2 className="w-3 h-3 text-red-400" />
+                <span className="text-xs text-red-300">Clear</span>
+              </button>
+            )}
           </div>
-          
-          <p className="text-white/70 text-xs">
-            Tap to select <strong className="text-white">{targetCard.name}</strong> monsters
-          </p>
         </div>
 
-        {/* Sacrifice Grid */}
-        <div className="flex-1 overflow-y-auto p-3">
+        {/* Collection Grid */}
+        <div className="flex-1 overflow-y-auto p-1">
           {compatibleMonsters.length === 0 ? (
             <div className="flex items-center justify-center h-32 text-white/50">
               <div className="text-center">
-                <Flame className="w-8 h-8 mx-auto mb-2 opacity-50 text-red-400" />
-                <h4 className="text-sm font-semibold mb-1">No Compatible Monsters</h4>
-                <p className="text-xs">Need another <strong className="text-white">{targetCard.name}</strong> for fusion</p>
+                <Flame className="w-6 h-6 mx-auto mb-2 opacity-50 text-red-400" />
+                <h4 className="text-xs font-semibold mb-1">No Compatible Monsters</h4>
+                <p className="text-xs text-center">Need another <strong className="text-white">{targetCard.name}</strong> for fusion</p>
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 pb-4">
+            <div className="grid grid-cols-4 gap-1 pb-2">
               {compatibleMonsters.map((card) => {
                 const isSelected = selectedSacrifices.some(s => s.id === card.id)
                 const tempSacrifices = isSelected 
@@ -339,59 +350,60 @@ export function MobileFusionPopup({
                 const isDisabled = wouldExceedMax
                 
                 return (
-                  <div
-                    key={card.id}
-                    className={`relative group transition-all duration-200 ${
-                      isDisabled 
-                        ? 'opacity-50 cursor-not-allowed' 
-                        : 'cursor-pointer'
-                    } ${
-                      isSelected 
-                        ? 'ring-2 ring-red-400 shadow-lg shadow-red-400/30' 
-                        : !isDisabled ? 'hover:ring-2 hover:ring-white/30' : ''
-                    }`}
-                    onClick={() => !isDisabled && handleSacrificeToggle(card)}
-                  >
-                    <MonsterCard
-                      card={card}
-                      variant="compact"
-                      showActions={false}
-                      className={isSelected ? 'ring-2 ring-red-400/50' : ''}
-                    />
-                    
-                    {/* Selection Badge */}
-                    {isSelected && (
-                      <div className="absolute -top-1 -right-1 bg-gradient-to-r from-red-400 to-orange-400 text-black text-xs px-1.5 py-0.5 rounded-full font-bold shadow-lg z-10">
-                        {selectedSacrifices.findIndex(s => s.id === card.id) + 1}
+                  <div key={card.id} className="space-y-1">
+                    {/* Card Container */}
+                    <div
+                      className={`relative group transition-all duration-200 ${
+                        isDisabled 
+                          ? 'opacity-50 cursor-not-allowed' 
+                          : 'cursor-pointer'
+                      } ${
+                        isSelected 
+                          ? 'ring-1 ring-red-400 shadow-md shadow-red-400/30' 
+                          : !isDisabled ? 'hover:ring-1 hover:ring-white/30' : ''
+                      }`}
+                      onClick={() => !isDisabled && handleSacrificeToggle(card)}
+                    >
+                      <MonsterCard
+                        card={card}
+                        variant="nano"
+                        showActions={false}
+                        className={isSelected ? 'ring-1 ring-red-400/50' : ''}
+                      />
+                      
+                      {/* Selection Badge */}
+                      {isSelected && (
+                        <div className="absolute -top-1 -right-1 bg-gradient-to-r from-red-400 to-orange-400 text-black text-xs px-1 py-0.5 rounded-full font-bold shadow-lg z-10" style={{fontSize: '8px'}}>
+                          {selectedSacrifices.findIndex(s => s.id === card.id) + 1}
+                        </div>
+                      )}
+                      
+                      {/* Fusion Points */}
+                      <div className="absolute top-0.5 left-0.5 bg-blue-500/80 text-white rounded font-bold z-10" style={{fontSize: '8px', padding: '1px 3px'}}>
+                        +1
                       </div>
-                    )}
-                    
-                    {/* Fusion Points */}
-                    <div className="absolute top-1 left-1 bg-blue-500/80 text-white text-xs px-1 py-0.5 rounded font-bold z-10">
-                      +1
+                      
+                      {/* Disabled Overlay */}
+                      {isDisabled && (
+                        <div className="absolute inset-0 bg-black/40 rounded-lg flex items-center justify-center z-15">
+                          <span className="text-red-300 font-bold" style={{fontSize: '8px'}}>MAX</span>
+                        </div>
+                      )}
                     </div>
                     
-                    {/* Swap Button */}
+                    {/* Swap Button Below Card */}
                     {onSwapTarget && !isSelected && !isDisabled && (
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-active:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center z-20">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleSwapToTarget(card)
-                          }}
-                          className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg transition-colors flex items-center gap-1 text-xs"
-                        >
-                          <ArrowUpDown className="w-3 h-3" />
-                          Swap
-                        </button>
-                      </div>
-                    )}
-                    
-                    {/* Disabled Overlay */}
-                    {isDisabled && (
-                      <div className="absolute inset-0 bg-black/40 rounded-lg flex items-center justify-center z-15">
-                        <span className="text-red-300 text-xs font-bold">MAX</span>
-                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleSwapToTarget(card)
+                        }}
+                        className="w-full bg-blue-500/90 hover:bg-blue-600/90 text-white py-0.5 rounded transition-colors flex items-center justify-center gap-0.5" 
+                        style={{fontSize: '8px'}}
+                      >
+                        <ArrowUpDown className="w-2 h-2" />
+                        Swap
+                      </button>
                     )}
                   </div>
                 )
@@ -401,28 +413,30 @@ export function MobileFusionPopup({
         </div>
 
         {/* Action Bar */}
-        <div className="p-3 border-t border-white/20 bg-white/5">
-          <div className="flex gap-2">
+        <div className="p-2 sm:p-4 border-t border-white/20 bg-white/5">
+          <div className="flex gap-2 sm:gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors font-medium text-sm"
+              className="px-4 py-2 sm:px-6 sm:py-3 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors font-medium text-sm"
             >
               Cancel
             </button>
             <button
               onClick={handleProceedToConfirm}
               disabled={!canFuse}
-              className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-2 text-sm ${
+              className={`flex-1 px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-sm ${
                 canFuse
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 shadow-lg'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 shadow-lg hover:shadow-xl transform hover:scale-105'
                   : 'bg-white/10 text-white/50 cursor-not-allowed'
               }`}
             >
-              <Merge className="w-4 h-4" />
-              {selectedSacrifices.length === 0 ? 'Select Monsters' : 
-               state === 'pending' ? 'Confirm...' :
-               state === 'confirming' ? 'Processing...' :
-               `Fuse ${selectedSacrifices.length} Monster${selectedSacrifices.length > 1 ? 's' : ''}`}
+              <Merge className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="font-semibold">
+                {selectedSacrifices.length === 0 ? 'Select Monsters' : 
+                 state === 'pending' ? 'Confirm Fusion' :
+                 state === 'confirming' ? 'Processing...' :
+                 `Fuse ${selectedSacrifices.length} Monster${selectedSacrifices.length === 1 ? '' : 's'}`}
+              </span>
             </button>
           </div>
         </div>
