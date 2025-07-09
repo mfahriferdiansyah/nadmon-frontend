@@ -27,28 +27,6 @@ export function GameLandingPopup({
 
   if (!isOpen) return null
 
-  const gameFeatures = [
-    {
-      icon: <Package className="w-6 h-6 text-blue-400" />,
-      title: "Collect Monster Packs",
-      description: "Purchase packs with MON or COOKIES to discover rare and legendary creatures"
-    },
-    {
-      icon: <Sparkles className="w-6 h-6 text-purple-400" />,
-      title: "Fusion & Evolution",
-      description: "Sacrifice monsters to evolve your favorites and increase their fusion power"
-    },
-    {
-      icon: <Users className="w-6 h-6 text-green-400" />,
-      title: "Team Building",
-      description: "Equip up to 3 monsters in your active team for battles and expeditions"
-    },
-    {
-      icon: <Crown className="w-6 h-6 text-orange-400" />,
-      title: "Battles & Rewards",
-      description: "Fight in PvE battles, send monsters on expeditions, and earn valuable rewards"
-    }
-  ]
 
   const steps = [
     {
@@ -69,21 +47,50 @@ export function GameLandingPopup({
       )
     },
     {
-      title: "How NADMON Works",
-      subtitle: "Master the Game Loop",
+      title: "Quick Start Guide",
+      subtitle: "Get Started in 3 Simple Steps",
       content: (
-        <div className="space-y-4">
-          {gameFeatures.map((feature, index) => (
-            <div key={index} className="flex items-start gap-4 p-4 rounded-lg bg-white/5 border border-white/10">
-              <div className="w-12 h-12 rounded-full bg-black/30 flex items-center justify-center flex-shrink-0">
-                {feature.icon}
+        <div className="space-y-3">
+          <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center">
+                <span className="text-green-300 font-bold text-sm">1</span>
               </div>
-              <div className="flex-1">
-                <h4 className="font-semibold text-white text-sm mb-1">{feature.title}</h4>
-                <p className="text-white/70 text-xs leading-relaxed">{feature.description}</p>
-              </div>
+              <h4 className="text-green-300 font-semibold text-sm">Connect Wallet</h4>
             </div>
-          ))}
+            <ul className="text-green-200/90 text-xs space-y-1 ml-8">
+              <li>• Use MetaMask or compatible wallet</li>
+              <li>• Switch to Monad Testnet</li>
+            </ul>
+          </div>
+          
+          <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center">
+                <span className="text-purple-300 font-bold text-sm">2</span>
+              </div>
+              <h4 className="text-purple-300 font-semibold text-sm">Buy Monster Pack</h4>
+            </div>
+            <ul className="text-purple-200/90 text-xs space-y-1 ml-8">
+              <li>• Visit Shop → Select pack</li>
+              <li>• Pay with MON or COOKIES</li>
+              <li>• Get 5 random monsters</li>
+            </ul>
+          </div>
+          
+          <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center">
+                <span className="text-blue-300 font-bold text-sm">3</span>
+              </div>
+              <h4 className="text-blue-300 font-semibold text-sm">Build Team</h4>
+            </div>
+            <ul className="text-blue-200/90 text-xs space-y-1 ml-8">
+              <li>• Open Inventory</li>
+              <li>• Equip up to 3 monsters</li>
+              <li>• Use fusion to evolve</li>
+            </ul>
+          </div>
         </div>
       )
     },
