@@ -169,7 +169,7 @@ export function MobileShopPopup({
       />
       
       {/* Wallet Handle - Outside and Above Popup */}
-      <div className="relative z-10 mb-3">
+      <div className="relative z-10 mb-4 px-4">
         <WalletHandle />
       </div>
       

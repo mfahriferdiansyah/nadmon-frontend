@@ -106,7 +106,7 @@ export function MobileFusionPopup({
 
   if (showConfirmation) {
     return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-end pb-4 px-2">
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center px-2">
         {/* Backdrop */}
         <div 
           className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -114,12 +114,12 @@ export function MobileFusionPopup({
         />
         
         {/* Wallet Handle - Outside and Above Popup */}
-        <div className="relative z-10 mb-3">
+        <div className="relative z-10 mb-4 px-4">
           <WalletHandle />
         </div>
         
         {/* Popup Container */}
-        <div className="relative w-full max-w-md glass-panel rounded-t-2xl rounded-b-xl backdrop-blur-lg bg-white/10 border border-white/20 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="relative w-full max-w-md sm:max-w-lg glass-panel rounded-2xl backdrop-blur-lg bg-white/10 border border-white/20 shadow-2xl overflow-hidden flex flex-col max-h-[85vh] sm:max-h-[70vh]">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-white/20">
             <div className="flex items-center gap-3">
@@ -143,13 +143,13 @@ export function MobileFusionPopup({
           </div>
 
           {/* Confirmation Content */}
-          <div className="flex-1 flex flex-col items-center justify-center p-6">
-            <div className="w-14 h-14 bg-gradient-to-r from-red-500/30 to-orange-500/30 rounded-full flex items-center justify-center mb-5">
-              <AlertCircle className="w-7 h-7 text-red-300" />
+          <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-r from-red-500/30 to-orange-500/30 rounded-full flex items-center justify-center mb-4 sm:mb-5">
+              <AlertCircle className="w-6 h-6 sm:w-7 sm:h-7 text-red-300" />
             </div>
             
-            <h3 className="text-lg font-bold text-white mb-3 text-center">Confirm Fusion</h3>
-            <p className="text-white/70 mb-5 text-center px-3">
+            <h3 className="text-base sm:text-lg font-bold text-white mb-2 sm:mb-3 text-center">Confirm Fusion</h3>
+            <p className="text-white/70 mb-4 sm:mb-5 text-center px-2 sm:px-3 text-sm sm:text-base">
               Are you sure you want to sacrifice <strong className="text-white">{selectedSacrifices.length} {targetCard.name}</strong> 
               {selectedSacrifices.length === 1 ? ' monster' : ' monsters'} to enhance your target <strong className="text-white">{`${targetCard.name} #${targetCard.id}`}</strong>?
             </p>
@@ -194,24 +194,24 @@ export function MobileFusionPopup({
               </div>
             </div> */}
             
-            <p className="text-red-300 text-sm mb-5 text-center px-3">
+            <p className="text-red-300 text-xs sm:text-sm mb-4 sm:mb-5 text-center px-2 sm:px-3">
               ⚠️ The sacrificed monsters will be permanently destroyed
             </p>
           </div>
 
           {/* Action Buttons */}
-          <div className="p-4 bg-black/20 border-t border-white/20">
-            <div className="flex gap-3">
+          <div className="p-3 sm:p-4 bg-black/20 border-t border-white/20">
+            <div className="flex gap-2 sm:gap-3">
               <button
                 onClick={() => setShowConfirmation(false)}
-                className="flex-1 px-4 py-3 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors font-medium"
+                className="flex-1 px-3 py-2 sm:px-4 sm:py-3 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors font-medium text-sm sm:text-base"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmFusion}
                 disabled={isLoading}
-                className="flex-1 px-4 py-3 rounded-lg bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium"
+                className="flex-1 px-3 py-2 sm:px-4 sm:py-3 rounded-lg bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 sm:gap-2 font-medium text-sm sm:text-base"
               >
                 {isLoading ? (
                   <>

@@ -324,85 +324,97 @@ export function GameUI({
         </div>
       </div>
 
-      {/* Mobile Layout - Keep existing */}
+      {/* Mobile Layout - Ultra Compact Bottom Bar */}
       <div className="md:hidden">
-        {/* Mobile Game Title - Simplified */}
-        <div className="absolute top-20 left-1/2 transform -translate-x-1/2 pointer-events-auto">
-          <div className="glass-panel px-4 py-2 rounded-xl backdrop-blur-md bg-white/10 border border-white/20">
-            <h1 className="text-white text-base font-bold text-center">NADMON on MONAD</h1>
-          </div>
-        </div>
-
-        {/* Mobile Bottom Navigation */}
-        <div className="absolute bottom-4 left-4 right-4 pointer-events-auto">
-          <div className="glass-panel rounded-2xl backdrop-blur-md bg-white/10 border border-white/20 p-4 space-y-4">
-            {/* Stats Bar */}
-            <div className="flex items-center justify-center gap-6 text-white text-sm">
-              <div className="flex items-center gap-2">
-                <PawPrint className="w-4 h-4 text-white" />
-                <span>{collectionCount}</span>
-                <span className="text-white/60 text-xs">monsters</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Sword className="w-4 h-4" />
-                <span>{equippedCardsCount}/3</span>
-                <span className="text-white/60 text-xs">equipped</span>
-              </div>
-              {onOpenInstructions && (
-                <button
-                  onClick={onOpenInstructions}
-                  className="flex items-center gap-1 p-2 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20 transition-all duration-200"
-                  title="Game Instructions"
-                >
-                  <Info className="w-4 h-4 text-white" />
-                  <span className="text-white text-xs">Guide</span>
-                </button>
-              )}
-            </div>
-            
-            {/* Navigation Buttons */}
-            <div className="flex justify-around items-center">
-              <button
-                onClick={onOpenInventory}
-                className={`flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-white/15 transition-colors relative min-w-0 ${equippedCardsCount === 0 ? 'inventory-attention-mobile' : ''}`}
-              >
-                <PawPrint className="w-8 h-8 text-white" />
-                <span className="text-white text-xs font-semibold">Inventory</span>
-              </button>
-
-              <button
-                onClick={onOpenShop}
-                className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-white/15 transition-colors min-w-0"
-              >
-                <ShoppingBag className="w-8 h-8 text-white drop-shadow-lg" />
-                <span className="text-white text-xs font-semibold">Shop</span>
-              </button>
-
-              <button
-                onClick={onOpenBattleground}
-                className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-colors relative min-w-0 ${
-                  equippedCardsCount === 0 
-                    ? 'opacity-60 cursor-not-allowed' 
-                    : 'monad-battle-hover'
-                }`}
-                disabled={equippedCardsCount === 0}
-              >
-                <div className="relative">
-                  <Swords className={`w-8 h-8 drop-shadow-lg ${
-                    equippedCardsCount === 0 ? 'text-gray-400' : 'text-white'
-                  }`} />
-                  {equippedCardsCount === 0 && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-lg">🔒</span>
-                    </div>
-                  )}
+        {/* Ultra Compact Bottom Navigation Bar */}
+        <div className="absolute bottom-2 left-2 right-2 pointer-events-auto">
+          <div className="glass-panel rounded-xl backdrop-blur-md bg-white/5 border border-white/10 px-3 py-2">
+            <div className="flex items-center justify-between">
+              
+              {/* Left Side - Compact Stats + Guide */}
+              <div className="flex items-center gap-2 text-white text-xs">
+                <div className="flex items-center gap-1">
+                  <PawPrint className="w-3 h-3" />
+                  <span>{collectionCount}</span>
                 </div>
-                <span className={`text-xs font-semibold ${
-                  equippedCardsCount === 0 ? 'text-gray-400' : 'text-white'
-                }`}>
-                  {equippedCardsCount === 0 ? 'Locked' : 'Battle'}
-                </span>
-              </button>
+                <div className="text-white/40">|</div>
+                <div className="flex items-center gap-1">
+                  <Sword className="w-3 h-3" />
+                  <span>{equippedCardsCount}/3</span>
+                </div>
+                {onOpenInstructions && (
+                  <>
+                    <div className="text-white/40">|</div>
+                    <button
+                      onClick={onOpenInstructions}
+                      className="w-6 h-6 rounded-full backdrop-blur-md bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all duration-200"
+                      title="Game Instructions"
+                    >
+                      <Info className="w-3 h-3 text-white/70" />
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Right Side - Navigation Buttons */}
+              <div className="flex items-center gap-2">
+                
+                {/* Inventory Button */}
+                <div className="flex flex-col items-center gap-0.5">
+                  <button
+                    onClick={onOpenInventory}
+                    className={`w-8 h-8 rounded-full backdrop-blur-md bg-white/10 border border-white/20 flex items-center justify-center hover:bg-white/20 transition-all duration-200 ${equippedCardsCount === 0 ? 'inventory-attention-mobile' : ''}`}
+                    title="Inventory"
+                  >
+                    <PawPrint className="w-4 h-4 text-white" />
+                  </button>
+                  <span className="text-white/50 text-[10px] font-medium">INVENTORY</span>
+                </div>
+
+                {/* Shop Button */}
+                <div className="flex flex-col items-center gap-0.5">
+                  <button
+                    onClick={onOpenShop}
+                    className="w-8 h-8 rounded-full backdrop-blur-md bg-white/10 border border-white/20 flex items-center justify-center hover:bg-white/20 transition-all duration-200"
+                    title="Shop"
+                  >
+                    <ShoppingBag className="w-4 h-4 text-white" />
+                  </button>
+                  <span className="text-white/50 text-[10px] font-medium">SHOP</span>
+                </div>
+
+                {/* Battle Button (Same Size) */}
+                <div className="flex flex-col items-center gap-0.5">
+                  <button
+                    onClick={handleBattleClick}
+                    className={`w-8 h-8 rounded-full backdrop-blur-md border border-white/20 flex items-center justify-center transition-all duration-200 relative ${
+                      equippedCardsCount === 0 
+                        ? 'bg-white/5 cursor-not-allowed' 
+                        : 'bg-purple-500/20 border-purple-400/50 hover:bg-purple-500/30 hover:border-purple-400/70'
+                    }`}
+                    disabled={equippedCardsCount === 0}
+                    title={equippedCardsCount === 0 ? 'Equip monsters to unlock battle' : 'Battle Arena'}
+                  >
+                    <Swords className={`w-4 h-4 ${
+                      equippedCardsCount === 0 ? 'text-gray-400' : 'text-white'
+                    }`} />
+                    {equippedCardsCount === 0 && (
+                      <div className={`absolute -top-0.5 -right-0.5 w-3 h-3 bg-gray-500/90 rounded-full flex items-center justify-center border border-white/50 ${lockWiggle ? 'wiggle-animation' : ''}`}>
+                        <Lock className="w-1.5 h-1.5 text-white" />
+                      </div>
+                    )}
+                    {equippedCardsCount > 0 && (
+                      <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full animate-ping bg-purple-400/60"></div>
+                    )}
+                  </button>
+                  <span className={`text-[10px] font-medium ${
+                    equippedCardsCount === 0 ? 'text-white/40' : 'text-white/50'
+                  }`}>
+                    {equippedCardsCount === 0 ? 'LOCKED' : 'BATTLE'}
+                  </span>
+                </div>
+              </div>
+              
             </div>
           </div>
         </div>
@@ -535,12 +547,16 @@ export function GameUI({
 
         @keyframes inventoryBounceMobile {
           0%, 100% { 
-            background-color: rgba(255, 255, 255, 0.05);
-            transform: scale(1) translateY(0);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: scale(1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
           }
           50% { 
-            background-color: rgba(131, 110, 249, 0.7);
-            transform: scale(1.05) translateY(-4px);
+            background: rgba(131, 110, 249, 0.8);
+            border-color: rgba(131, 110, 249, 1);
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(131, 110, 249, 0.6);
           }
         }
 
