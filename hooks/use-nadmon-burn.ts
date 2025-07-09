@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { useWriteContract, useWaitForTransactionReceipt, useChainId } from 'wagmi'
 import { parseAbi } from 'viem'
 import { getContractAddresses } from '@/contracts/config'
-import { TransactionToastManager } from '@/components/ui/transaction-toast'
+// Removed TransactionToastManager import - will be rebuilt later
 import type { PokemonCard } from '@/types/card'
 
 // Simplified ABI for transfer function (burning by transferring to zero address)
@@ -38,98 +38,55 @@ export function useNadmonBurn() {
   })
 
   const burnMonster = useCallback(async (card: PokemonCard) => {
-    const loadingToastId = `burn-prep-${Date.now()}`
-    
     try {
       setIsLoading(true)
       setError(null)
 
       console.log('🔥 Attempting to burn monster:', card.name, `(ID: ${card.id})`)
 
-      TransactionToastManager.show({
-        id: loadingToastId,
-        status: 'pending',
-        title: 'Checking burn functionality...',
-        description: `Checking if ${card.name} can be burned`
-      })
+      // Removed toast notifications - will be rebuilt later
+      console.log('Checking burn functionality...')
 
       // For now, just show that burning is not supported
       // This can be updated when burn functionality is added to the contract
       await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate checking
       
-      TransactionToastManager.dismiss(loadingToastId)
-      
       const errorMessage = 'Burning is not yet supported by this NFT contract. This feature will be available in a future update.'
       setError(errorMessage)
-      TransactionToastManager.error(
-        'Burn not supported',
-        errorMessage
-      )
+      console.error('Burn not supported:', errorMessage)
 
     } catch (err) {
       console.error('Burn error:', err)
       
-      // Dismiss the preparation toast
-      TransactionToastManager.dismiss(loadingToastId)
-      
       const errorMessage = 'Burning is not yet supported by this NFT contract.'
       setError(errorMessage)
-      TransactionToastManager.error(
-        'Burn not supported',
-        errorMessage
-      )
     } finally {
       setIsLoading(false)
     }
   }, [])
 
-  // Handle transaction states with toasts
+  // Handle transaction states - removed toast notifications, will be rebuilt later
   useEffect(() => {
     if (isPending && hash) {
-      TransactionToastManager.show({
-        id: `burn-${hash}`,
-        status: 'pending',
-        title: 'Transaction submitted',
-        description: 'Waiting for confirmation...',
-        txHash: hash,
-        blockExplorerUrl: 'https://testnet.monvision.io'
-      })
+      console.log('Transaction submitted, waiting for confirmation...', hash)
     }
   }, [isPending, hash])
 
   useEffect(() => {
     if (isConfirming && hash) {
-      TransactionToastManager.update(`burn-${hash}`, {
-        status: 'pending',
-        title: 'Processing burn...',
-        description: 'Transaction is being confirmed on blockchain',
-        txHash: hash,
-        blockExplorerUrl: 'https://testnet.monvision.io'
-      })
+      console.log('Processing burn transaction...', hash)
     }
   }, [isConfirming, hash])
 
   useEffect(() => {
     if (isConfirmed && hash) {
-      TransactionToastManager.update(`burn-${hash}`, {
-        status: 'success',
-        title: 'Monster burned successfully!',
-        description: 'Your monster has been permanently destroyed',
-        txHash: hash,
-        blockExplorerUrl: 'https://testnet.monvision.io'
-      })
+      console.log('Monster burned successfully!', hash)
     }
   }, [isConfirmed, hash])
 
   useEffect(() => {
     if ((writeError || receiptError) && hash) {
-      TransactionToastManager.update(`burn-${hash}`, {
-        status: 'error',
-        title: 'Transaction failed',
-        description: writeError?.message || receiptError?.message || 'Unknown error occurred',
-        txHash: hash,
-        blockExplorerUrl: 'https://testnet.monvision.io'
-      })
+      console.error('Transaction failed:', (writeError as any)?.message || (receiptError as any)?.message || 'Unknown error occurred')
     }
   }, [writeError, receiptError, hash])
 
@@ -142,7 +99,7 @@ export function useNadmonBurn() {
     burnMonster,
     isLoading: isLoading || isPending || isConfirming,
     isSuccess: isConfirmed,
-    error: error || writeError?.message || receiptError?.message || null,
+    error: error || (writeError as any)?.message || (receiptError as any)?.message || null,
     hash,
     resetError,
     state: isPending ? 'pending' : isConfirming ? 'confirming' : isConfirmed ? 'success' : error || writeError || receiptError ? 'error' : 'idle'

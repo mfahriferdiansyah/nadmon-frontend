@@ -6,7 +6,7 @@ import { useAccount, useChainId } from 'wagmi';
 import { Button } from '@/components/ui/button';
 import { monadTestnet } from '@/lib/web3-config';
 import { Wallet, X, Zap, AlertTriangle, CheckCircle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+// Removed toast import - will be rebuilt later
 import { WalletHandle } from '@/components/wallet-handle';
 
 interface WalletConnectionPopupProps {
@@ -17,17 +17,14 @@ export function WalletConnectionPopup({ onClose }: WalletConnectionPopupProps) {
   const { isConnected } = useAccount();
   const chainId = useChainId();
   const [isConnecting, setIsConnecting] = useState(false);
-  const { toast } = useToast();
+  // Removed toast hook - will be rebuilt later
 
   const isOnCorrectChain = chainId === monadTestnet.id;
 
   const handleClose = () => {
     if (!isConnected && onClose) {
-      toast({
-        title: "Wallet Connection Required",
-        description: "Please connect your wallet to access NADMON features.",
-        variant: "destructive",
-      });
+      // Removed toast notification - will be rebuilt later
+      console.log("Wallet Connection Required: Please connect your wallet to access NADMON features.");
     }
     onClose?.();
   };
@@ -77,13 +74,6 @@ export function WalletConnectionPopup({ onClose }: WalletConnectionPopupProps) {
             <WalletHandle className="scale-110" />
           </div>
 
-          {!isConnected && (
-            <div className="text-center">
-              <p className="text-yellow-300 text-xs">
-                👆 Click above to connect your wallet
-              </p>
-            </div>
-          )}
 
           {isConnected && !isOnCorrectChain && (
             <div className="text-center p-3 rounded-lg bg-red-500/10 border border-red-500/30">

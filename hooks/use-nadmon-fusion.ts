@@ -4,7 +4,6 @@ import { useState, useCallback, useEffect } from 'react'
 import { useWriteContract, useWaitForTransactionReceipt, useChainId } from 'wagmi'
 import { parseAbi } from 'viem'
 import { getContractAddresses } from '@/contracts/config'
-import { toast } from '@/lib/toast-service'
 import type { PokemonCard } from '@/types/card'
 
 // Simplified ABI for the evolve function
@@ -73,19 +72,12 @@ export function useNadmonFusion() {
       console.log('Total fusion points:', totalFusion)
       console.log('Token IDs array:', tokenIds)
 
-      // Simple loading toast with auto-cleanup
-      const loadingToastId = toast.loading(`Preparing fusion transaction...`)
-
       await writeContract({
         address: contracts.nadmonNFT as `0x${string}`,
         abi: NADMON_NFT_ABI,
         functionName: 'evolve',
         args: [tokenIds.map(id => BigInt(id))]
       })
-
-      // Dismiss the preparation toast once transaction is submitted
-      toast.dismiss(loadingToastId)
-      toast.info('Transaction submitted!')
 
     } catch (err) {
       console.error('Fusion error:', err)
@@ -109,37 +101,12 @@ export function useNadmonFusion() {
       }
       
       setError(errorMessage)
-      toast.error(`Fusion failed: ${errorMessage}`)
     } finally {
       setIsLoading(false)
     }
   }, [writeContract, contracts.nadmonNFT])
 
-  // Handle transaction states with simple toasts
-  useEffect(() => {
-    if (isPending && hash) {
-      toast.loading('Transaction pending...', { duration: 0 })
-    }
-  }, [isPending, hash])
-
-  useEffect(() => {
-    if (isConfirming && hash) {
-      toast.loading('Processing fusion...', { duration: 0 })
-    }
-  }, [isConfirming, hash])
-
-  useEffect(() => {
-    if (isConfirmed && hash) {
-      toast.success('Fusion successful! Your monster has evolved!')
-    }
-  }, [isConfirmed, hash])
-
-  useEffect(() => {
-    if ((writeError || receiptError) && hash) {
-      const errorMsg = writeError?.message || receiptError?.message || 'Transaction failed'
-      toast.error(`Transaction failed: ${errorMsg}`)
-    }
-  }, [writeError, receiptError, hash])
+  // Transaction states are handled internally
 
   // Reset error when starting new transaction
   const resetError = useCallback(() => {

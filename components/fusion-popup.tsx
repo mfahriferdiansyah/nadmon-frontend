@@ -51,12 +51,7 @@ export function FusionPopup({
   
   const projectedFusionLevel = Math.min(totalFusionPoints, maxFusionLevel)
 
-  // Show toast function (you can implement your own toast system)
-  const showToast = useCallback((message: string, type: 'error' | 'success' | 'info' = 'info') => {
-    // Simple alert for now - replace with your toast system
-    console.log(`${type.toUpperCase()}: ${message}`)
-    // You can integrate with react-hot-toast or your preferred toast library here
-  }, [])
+  // Removed toast functionality - will be rebuilt later
 
   const handleSacrificeToggle = useCallback((card: PokemonCard) => {
     // Check if fusion points would be sufficient for evolution
@@ -68,13 +63,8 @@ export function FusionPopup({
 
     setSelectedSacrifices(tempSacrifices)
     
-    // Show helpful info about fusion points
-    if (tempTotalFusion >= 10) {
-      showToast(`Total fusion points: ${tempTotalFusion}/10 - Ready for evolution!`, 'success')
-    } else if (tempSacrifices.length > 0) {
-      showToast(`Total fusion points: ${tempTotalFusion}/10 - Need ${10 - tempTotalFusion} more points`, 'info')
-    }
-  }, [selectedSacrifices, targetCard, showToast])
+    // Removed toast notifications - will be rebuilt later
+  }, [selectedSacrifices, targetCard])
 
   const handleSwapToTarget = useCallback((card: PokemonCard) => {
     if (onSwapTarget) {
@@ -101,11 +91,12 @@ export function FusionPopup({
 
   const handleProceedToConfirm = useCallback(() => {
     if (selectedSacrifices.length === 0) {
-      showToast('Select at least 1 monster to sacrifice', 'error')
+      // Removed toast notification - will be rebuilt later
+      console.log('Error: Select at least 1 monster to sacrifice')
     } else {
       setShowConfirmation(true)
     }
-  }, [selectedSacrifices, showToast])
+  }, [selectedSacrifices])
 
   const canFuse = selectedSacrifices.length > 0 && !isLoading
 

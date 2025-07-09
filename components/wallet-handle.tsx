@@ -41,7 +41,7 @@ export function WalletHandle({ className = '' }: WalletHandleProps) {
             className="flex items-center gap-1.5 px-2 py-1.5 rounded bg-white/10 border border-white/20 hover:bg-white/15 transition-colors text-white/70 hover:text-white backdrop-blur-sm"
           >
             <Wallet className="w-3 h-3" />
-            <span className="text-xs font-medium">Connect</span>
+            <span className="text-xs font-medium">Connect Wallet</span>
           </button>
         )}
       </ConnectButton.Custom>

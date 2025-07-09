@@ -10,7 +10,7 @@ import { PACK_TYPES } from "@/constants/packs"
 import { useNadmonPackBuying } from "@/hooks/use-nadmon-pack-buying"
 import { useAccount, useChainId } from "wagmi"
 import { monadTestnet } from "@/lib/web3-config"
-import { TransactionToastManager } from "@/components/ui/transaction-toast"
+// Removed TransactionToastManager import - will be rebuilt later
 import { WalletHandle } from "@/components/wallet-handle"
 
 interface ShopPopupProps {
@@ -68,16 +68,9 @@ export function ShopPopup({
   const handleBuyPack = async () => {
     if (!selectedPack || !canPurchase) return
     
-    // Create transaction toast
-    const toastId = `pack-purchase-${Date.now()}`
-    setCurrentToastId(toastId)
-    
-    TransactionToastManager.show({
-      id: toastId,
-      status: 'loading',
-      title: 'Purchasing Pack',
-      description: `Buying ${selectedPack.name} with ${paymentMethod}`,
-    })
+    // Removed toast notifications - will be rebuilt later
+    console.log(`Purchasing ${selectedPack.name} with ${paymentMethod}`)
+    setCurrentToastId(null)
     
     reset()
     
@@ -89,43 +82,14 @@ export function ShopPopup({
       }
     } catch (error) {
       console.error('Purchase failed:', error)
-      TransactionToastManager.update(toastId, {
-        status: 'error',
-        title: 'Purchase Failed',
-        description: error instanceof Error ? error.message : 'Transaction was rejected',
-      })
     }
   }
 
-  // Handle transaction state changes
+  // Handle transaction state changes - removed toast updates, will be rebuilt later
   useEffect(() => {
-    if (!currentToastId) return
-
-    if (state === 'pending') {
-      TransactionToastManager.update(currentToastId, {
-        status: 'pending',
-        title: 'Confirm Transaction',
-        description: 'Please confirm in your wallet',
-      })
-    } else if (state === 'confirming') {
-      TransactionToastManager.update(currentToastId, {
-        status: 'pending',
-        title: 'Transaction Pending',
-        description: 'Waiting for blockchain confirmation',
-      })
-    } else if (state === 'fetching-pack') {
-      TransactionToastManager.update(currentToastId, {
-        status: 'pending',
-        title: 'Detecting Pack',
-        description: 'Extracting pack ID from transaction...',
-      })
-    } else if (state === 'success') {
-      TransactionToastManager.update(currentToastId, {
-        status: 'success',
-        title: 'Pack Purchased!',
-        description: 'Your pack is being opened...',
-      })
-      
+    console.log(`Transaction state: ${state}`)
+    
+    if (state === 'success') {
       // Trigger pack opening after short delay
       setTimeout(() => {
         if (selectedPack) {
@@ -147,13 +111,9 @@ export function ShopPopup({
         }
       }, 1000)
     } else if (state === 'error') {
-      TransactionToastManager.update(currentToastId, {
-        status: 'error',
-        title: 'Transaction Failed',
-        description: error || 'Something went wrong',
-      })
+      console.error('Transaction failed:', error)
     }
-  }, [state, error, currentToastId, selectedPack, onPackSelect, onPackPurchased, reset])
+  }, [state, error, selectedPack, onPackSelect, onPackPurchased, reset, packId, paymentMethod])
 
   const handleCategoryClick = (category: ShopCategory) => {
     const categoryData = SHOP_CATEGORIES.find(c => c.id === category)

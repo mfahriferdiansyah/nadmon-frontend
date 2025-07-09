@@ -5,7 +5,6 @@ import { Package, Sword, ShoppingBag, Swords, BarChart3, Heart, Shield, Target, 
 import type { PokemonCard } from "@/types/card"
 import Image from "next/image"
 import { useState } from "react"
-import { toast } from "@/lib/toast-service"
 
 interface GameUIProps {
   onOpenInventory: () => void
@@ -81,7 +80,7 @@ export function GameUI({
       // Trigger wiggle animation
       setLockWiggle(true)
       setTimeout(() => setLockWiggle(false), 500)
-      toast.warning('Equip monsters to unlock battle')
+      // Battle locked - no monsters equipped
       return
     }
     onOpenBattleground()

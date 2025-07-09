@@ -112,13 +112,6 @@ export function GameLandingPopup({
             <WalletHandle className="scale-110" />
           </div>
 
-          {!isConnected && (
-            <div className="text-center">
-              <p className="text-yellow-300 text-xs">
-                👆 Click above to connect your wallet
-              </p>
-            </div>
-          )}
 
           {isConnected && !isOnCorrectChain && (
             <div className="text-center p-3 rounded-lg bg-red-500/10 border border-red-500/30">

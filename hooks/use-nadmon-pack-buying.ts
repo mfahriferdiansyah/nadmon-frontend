@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAccount, useChainId, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther } from 'viem';
 import { getContractAddresses } from '@/contracts/config';
-import { TransactionToastManager } from '@/components/ui/transaction-toast';
+// Removed TransactionToastManager import - will be rebuilt later
 
 // Extract just the ABI we need
 const NADMON_NFT_ABI = [
