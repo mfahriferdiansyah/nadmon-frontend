@@ -5,6 +5,7 @@ import { useWriteContract, useWaitForTransactionReceipt, useChainId } from 'wagm
 import { parseAbi } from 'viem'
 import { getContractAddresses } from '@/contracts/config'
 import type { PokemonCard } from '@/types/card'
+import { transactionToast } from '@/components/ui/transaction-toast'
 
 // Simplified ABI for the evolve function
 const NADMON_NFT_ABI = parseAbi([
@@ -41,6 +42,11 @@ export function useNadmonFusion() {
     try {
       setIsLoading(true)
       setError(null)
+      
+      // Defer toast call to prevent render state updates
+      setTimeout(() => {
+        transactionToast.pending('Fusing cards...')
+      }, 0)
 
       // Create array with target card first, then sacrifice cards
       const tokenIds = [targetCard.id, ...sacrificeCards.map(card => card.id)]
@@ -101,12 +107,48 @@ export function useNadmonFusion() {
       }
       
       setError(errorMessage)
+      
+      // Defer toast call to prevent render state updates
+      setTimeout(() => {
+        transactionToast.error(errorMessage)
+      }, 0)
     } finally {
       setIsLoading(false)
     }
   }, [writeContract, contracts.nadmonNFT])
 
-  // Transaction states are handled internally
+  // Handle transaction state changes with deferred toast calls
+  useEffect(() => {
+    if (isConfirming && hash) {
+      setTimeout(() => {
+        transactionToast.confirming('Fusion submitted', hash)
+      }, 0)
+    }
+  }, [isConfirming, hash])
+
+  useEffect(() => {
+    if (isConfirmed && hash) {
+      setTimeout(() => {
+        transactionToast.success('Cards fused successfully!', hash)
+      }, 0)
+    }
+  }, [isConfirmed, hash])
+
+  useEffect(() => {
+    if (writeError) {
+      setTimeout(() => {
+        transactionToast.error(writeError)
+      }, 0)
+    }
+  }, [writeError])
+
+  useEffect(() => {
+    if (receiptError) {
+      setTimeout(() => {
+        transactionToast.error(receiptError)
+      }, 0)
+    }
+  }, [receiptError])
 
   // Reset error when starting new transaction
   const resetError = useCallback(() => {

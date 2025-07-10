@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useAccount, useChainId } from "wagmi"
 import { GameCanvas } from "@/components/game-canvas"
 import { GameUI } from "@/components/game-ui"
@@ -75,35 +75,48 @@ export default function GachaGame() {
     }
   }, [collection.length])
 
+  // Debounced equipped cards sync to prevent excessive updates
+  const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  
+  const debouncedSyncEquippedCards = useCallback(() => {
+    if (syncTimeoutRef.current) {
+      clearTimeout(syncTimeoutRef.current)
+    }
+    
+    syncTimeoutRef.current = setTimeout(() => {
+      if (collection.length > 0 && equippedCards.length > 0) {
+        console.log('🔄 Syncing equipped cards with collection update')
+        console.log('Collection length:', collection.length)
+        console.log('Equipped cards before sync:', equippedCards.map(c => `${c.name} (ID: ${c.id}, Fusion: ${c.fusion || 0})`))
+        
+        setEquippedCards(prev => {
+          const updated = prev.map(equippedCard => {
+            // Find the updated version of this card in the collection
+            const updatedCard = collection.find(card => card.id === equippedCard.id)
+            if (updatedCard && (updatedCard.fusion !== equippedCard.fusion || updatedCard.hp !== equippedCard.hp)) {
+              console.log(`📈 Updating equipped card ${equippedCard.name} (ID: ${equippedCard.id}): fusion ${equippedCard.fusion || 0} → ${updatedCard.fusion || 0}`)
+            }
+            return updatedCard || equippedCard // Use updated version if found, otherwise keep original
+          }).filter(card => {
+            // Remove cards that no longer exist in collection (burned in fusion)
+            const exists = collection.some(collectionCard => collectionCard.id === card.id)
+            if (!exists) {
+              console.log(`🔥 Removing burned card from equipped: ${card.name} (ID: ${card.id})`)
+            }
+            return exists
+          })
+          
+          console.log('Equipped cards after sync:', updated.map(c => `${c.name} (ID: ${c.id}, Fusion: ${c.fusion || 0})`))
+          return updated
+        })
+      }
+    }, 300) // 300ms debounce
+  }, [collection, equippedCards])
+
   // Update equipped cards when collection updates (to reflect evolved stats)
   useEffect(() => {
-    if (collection.length > 0 && equippedCards.length > 0) {
-      console.log('🔄 Syncing equipped cards with collection update')
-      console.log('Collection length:', collection.length)
-      console.log('Equipped cards before sync:', equippedCards.map(c => `${c.name} (ID: ${c.id}, Fusion: ${c.fusion || 0})`))
-      
-      setEquippedCards(prev => {
-        const updated = prev.map(equippedCard => {
-          // Find the updated version of this card in the collection
-          const updatedCard = collection.find(card => card.id === equippedCard.id)
-          if (updatedCard && (updatedCard.fusion !== equippedCard.fusion || updatedCard.hp !== equippedCard.hp)) {
-            console.log(`📈 Updating equipped card ${equippedCard.name} (ID: ${equippedCard.id}): fusion ${equippedCard.fusion || 0} → ${updatedCard.fusion || 0}`)
-          }
-          return updatedCard || equippedCard // Use updated version if found, otherwise keep original
-        }).filter(card => {
-          // Remove cards that no longer exist in collection (burned in fusion)
-          const exists = collection.some(collectionCard => collectionCard.id === card.id)
-          if (!exists) {
-            console.log(`🔥 Removing burned card from equipped: ${card.name} (ID: ${card.id})`)
-          }
-          return exists
-        })
-        
-        console.log('Equipped cards after sync:', updated.map(c => `${c.name} (ID: ${c.id}, Fusion: ${c.fusion || 0})`))
-        return updated
-      })
-    }
-  }, [collection])
+    debouncedSyncEquippedCards()
+  }, [collection, debouncedSyncEquippedCards])
 
   // Handle "Open Another" pack purchase completion
   useEffect(() => {
@@ -439,20 +452,11 @@ export default function GachaGame() {
     const sacrificeIds = sacrificeCards.map(card => card.id)
     setEquippedCards(prev => prev.filter(card => !sacrificeIds.includes(card.id)))
     
-    // Refresh NFT data immediately
-    refetchNFTs()
-    
-    // Refresh again after a delay to ensure blockchain data is indexed
+    // Single smart refresh after a short delay to allow blockchain indexing
     setTimeout(() => {
-      console.log('🔄 Delayed refresh after fusion')
+      console.log('🔄 Refreshing inventory after fusion')
       refetchNFTs()
-    }, 3000)
-    
-    // Another refresh after a longer delay for good measure
-    setTimeout(() => {
-      console.log('🔄 Final refresh after fusion')
-      refetchNFTs()
-    }, 8000)
+    }, 2000)
   }
 
   return (

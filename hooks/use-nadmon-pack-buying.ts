@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAccount, useChainId, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther } from 'viem';
 import { getContractAddresses } from '@/contracts/config';
-// Removed TransactionToastManager import - will be rebuilt later
+import { transactionToast } from '@/components/ui/transaction-toast';
 
 // Extract just the ABI we need
 const NADMON_NFT_ABI = [
@@ -113,6 +113,9 @@ export function useNadmonPackBuying(): UseNadmonPackBuyingReturn {
   useEffect(() => {
     if (isWritePending) {
       setState('pending');
+      setTimeout(() => {
+        transactionToast.pending('Purchasing pack...');
+      }, 0);
     }
   }, [isWritePending]);
 
@@ -121,6 +124,9 @@ export function useNadmonPackBuying(): UseNadmonPackBuyingReturn {
       setState('confirming');
       if (writeData) {
         setTransactionHash(writeData);
+        setTimeout(() => {
+          transactionToast.confirming('Transaction sent', writeData);
+        }, 0);
       }
     }
   }, [isConfirming, writeData]);
@@ -140,16 +146,25 @@ export function useNadmonPackBuying(): UseNadmonPackBuyingReturn {
             setPackId(extractedPackId);
             console.log(`✅ FINAL SUCCESS: Pack ID ${extractedPackId} detected!`);
             setState('success');
+            setTimeout(() => {
+              transactionToast.success('Pack purchased!', receipt.transactionHash);
+            }, 0);
           } else {
             console.log('❌ FINAL ERROR: Could not detect pack ID from transaction');
             setError('Could not detect pack ID from transaction');
             setState('error');
+            setTimeout(() => {
+              transactionToast.error('Could not detect pack ID from transaction');
+            }, 0);
           }
           
         } catch (error) {
           console.log('❌ FINAL ERROR:', error.message);
           setError(error.message || 'Failed to detect pack');
           setState('error');
+          setTimeout(() => {
+            transactionToast.error(error);
+          }, 0);
         }
       };
       
@@ -186,6 +201,9 @@ export function useNadmonPackBuying(): UseNadmonPackBuyingReturn {
         : err?.message || 'Failed to buy pack';
       
       setError(errorMessage);
+      setTimeout(() => {
+        transactionToast.error(err);
+      }, 0);
     }
   };
 
@@ -215,6 +233,9 @@ export function useNadmonPackBuying(): UseNadmonPackBuyingReturn {
         : err?.message || 'Failed to buy pack';
       
       setError(errorMessage);
+      setTimeout(() => {
+        transactionToast.error(err);
+      }, 0);
     }
   };
 

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { Web3Provider } from '@/components/providers/web3-provider'
+import { Toaster } from 'sonner'
 
 export const metadata: Metadata = {
   title: 'Nadmon - Collect, Battle, and Trade Digital Creatures',
@@ -78,6 +79,35 @@ export default function RootLayout({
       <body>
         <Web3Provider>
           {children}
+          {/* Desktop toasts (top-left) */}
+          <Toaster 
+            position="top-left"
+            toastOptions={{
+              style: {
+                background: 'transparent',
+                border: 'none',
+                padding: 0,
+              },
+            }}
+            visibleToasts={3}
+            offset={16}
+            className="hidden sm:block"
+          />
+          
+          {/* Mobile toasts (top-center) */}
+          <Toaster 
+            position="top-center"
+            toastOptions={{
+              style: {
+                background: 'transparent',
+                border: 'none',
+                padding: 0,
+              },
+            }}
+            visibleToasts={2}
+            offset={16}
+            className="block sm:hidden"
+          />
         </Web3Provider>
       </body>
     </html>

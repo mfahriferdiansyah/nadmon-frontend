@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { useWriteContract, useWaitForTransactionReceipt, useChainId } from 'wagmi'
 import { parseAbi } from 'viem'
 import { getContractAddresses } from '@/contracts/config'
-// Removed TransactionToastManager import - will be rebuilt later
+import { transactionToast } from '@/components/ui/transaction-toast'
 import type { PokemonCard } from '@/types/card'
 
 // Simplified ABI for transfer function (burning by transferring to zero address)
@@ -41,11 +41,13 @@ export function useNadmonBurn() {
     try {
       setIsLoading(true)
       setError(null)
+      
+      // Defer toast call to prevent render state updates
+      setTimeout(() => {
+        transactionToast.pending('Burning cards...')
+      }, 0)
 
       console.log('🔥 Attempting to burn monster:', card.name, `(ID: ${card.id})`)
-
-      // Removed toast notifications - will be rebuilt later
-      console.log('Checking burn functionality...')
 
       // For now, just show that burning is not supported
       // This can be updated when burn functionality is added to the contract
@@ -53,6 +55,11 @@ export function useNadmonBurn() {
       
       const errorMessage = 'Burning is not yet supported by this NFT contract. This feature will be available in a future update.'
       setError(errorMessage)
+      
+      // Defer toast call to prevent render state updates
+      setTimeout(() => {
+        transactionToast.error(errorMessage)
+      }, 0)
       console.error('Burn not supported:', errorMessage)
 
     } catch (err) {
@@ -60,12 +67,17 @@ export function useNadmonBurn() {
       
       const errorMessage = 'Burning is not yet supported by this NFT contract.'
       setError(errorMessage)
+      
+      // Defer toast call to prevent render state updates
+      setTimeout(() => {
+        transactionToast.error(errorMessage)
+      }, 0)
     } finally {
       setIsLoading(false)
     }
   }, [])
 
-  // Handle transaction states - removed toast notifications, will be rebuilt later
+  // Handle transaction states
   useEffect(() => {
     if (isPending && hash) {
       console.log('Transaction submitted, waiting for confirmation...', hash)
@@ -75,18 +87,28 @@ export function useNadmonBurn() {
   useEffect(() => {
     if (isConfirming && hash) {
       console.log('Processing burn transaction...', hash)
+      setTimeout(() => {
+        transactionToast.confirming('Burn submitted', hash)
+      }, 0)
     }
   }, [isConfirming, hash])
 
   useEffect(() => {
     if (isConfirmed && hash) {
       console.log('Monster burned successfully!', hash)
+      setTimeout(() => {
+        transactionToast.success('Cards burned!', hash)
+      }, 0)
     }
   }, [isConfirmed, hash])
 
   useEffect(() => {
     if ((writeError || receiptError) && hash) {
-      console.error('Transaction failed:', (writeError as any)?.message || (receiptError as any)?.message || 'Unknown error occurred')
+      const errorMessage = (writeError as any)?.message || (receiptError as any)?.message || 'Unknown error occurred'
+      console.error('Transaction failed:', errorMessage)
+      setTimeout(() => {
+        transactionToast.error(errorMessage)
+      }, 0)
     }
   }, [writeError, receiptError, hash])
 
