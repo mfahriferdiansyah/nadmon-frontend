@@ -33,15 +33,13 @@ export function GameLandingPopup({
       title: "Welcome to NADMON",
       subtitle: "The Ultimate Monster Collection Game",
       content: (
-        <div className="space-y-3">
-          <div className="text-center">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mx-auto mb-3">
-              <Gamepad2 className="w-6 h-6 text-white" />
-            </div>
-            <p className="text-white/80 text-sm leading-relaxed">
-              Collect, evolve, and battle with powerful digital creatures. Build your ultimate team!
-            </p>
+        <div className="space-y-3 text-center">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mx-auto mb-3">
+            <Gamepad2 className="w-6 h-6 text-white" />
           </div>
+          <p className="text-white/80 text-base leading-relaxed px-4">
+            Collect, evolve, and battle with powerful digital creatures. Build your ultimate team!
+          </p>
         </div>
       )
     },
@@ -102,7 +100,7 @@ export function GameLandingPopup({
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-blue-600 flex items-center justify-center mx-auto mb-3">
               <Wallet className="w-6 h-6 text-white" />
             </div>
-            <p className="text-white/80 text-xs leading-relaxed mb-3">
+            <p className="text-white/80 text-sm leading-relaxed mb-3">
               Connect your wallet to start collecting monsters and saving progress on blockchain.
             </p>
           </div>
@@ -152,7 +150,7 @@ export function GameLandingPopup({
       <div className="absolute inset-0 bg-black/80 backdrop-blur-md" />
       
       {/* Desktop Layout */}
-      <div className="hidden md:block relative w-full max-w-2xl h-[500px] my-4 glass-panel rounded-2xl backdrop-blur-lg bg-white/10 border border-white/20 shadow-2xl overflow-hidden flex flex-col">
+      <div className="hidden md:block relative w-full max-w-md my-4 glass-panel rounded-2xl backdrop-blur-lg bg-white/10 border border-white/20 shadow-2xl overflow-hidden flex flex-col">
         {/* Compact Header */}
         <div className="flex items-center justify-between p-3 border-b border-white/20">
           <div className="flex items-center gap-2">
@@ -197,9 +195,9 @@ export function GameLandingPopup({
           </div>
         </div>
 
-        {/* Compact Content - Fixed Height */}
-        <div className="flex-1 p-3 overflow-y-auto">
-          <div className="h-full flex items-center justify-center">
+        {/* Content */}
+        <div className="p-3 overflow-y-auto">
+          <div className="flex items-center justify-center h-[280px]">
             <div className="w-full">
               {currentStepData.content}
             </div>
@@ -270,7 +268,7 @@ export function GameLandingPopup({
                 <Gamepad2 className="w-2.5 h-2.5 text-blue-300" />
               </div>
               <div>
-                <h2 className="text-xs font-bold text-white">{currentStepData.title}</h2>
+                <h2 className="text-sm font-bold text-white">{currentStepData.title}</h2>
                 <p className="text-blue-300/80 text-xs">{currentStepData.subtitle}</p>
               </div>
             </div>
@@ -320,7 +318,7 @@ export function GameLandingPopup({
               <button
                 onClick={handlePrevious}
                 disabled={currentStep === 0}
-                className="flex-1 px-3 py-2 rounded-lg font-medium text-xs transition-all duration-200 bg-white/10 text-white/70 hover:bg-white/20 hover:text-white border border-white/20 hover:border-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-3 py-2 rounded-lg font-medium text-sm transition-all duration-200 bg-white/10 text-white/70 hover:bg-white/20 hover:text-white border border-white/20 hover:border-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Previous
               </button>
@@ -328,7 +326,7 @@ export function GameLandingPopup({
               {currentStep < steps.length - 1 ? (
                 <button
                   onClick={handleNext}
-                  className="flex-1 px-3 py-2 rounded-lg font-medium text-xs transition-all duration-200 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 border border-blue-500 hover:border-blue-400 shadow-lg hover:shadow-blue-500/25 flex items-center justify-center gap-1"
+                  className="flex-1 px-3 py-2 rounded-lg font-medium text-sm transition-all duration-200 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 border border-blue-500 hover:border-blue-400 shadow-lg hover:shadow-blue-500/25 flex items-center justify-center gap-1"
                 >
                   Next
                   <ArrowRight className="w-3 h-3" />
@@ -337,7 +335,7 @@ export function GameLandingPopup({
                 <button
                   onClick={onEnterGame}
                   disabled={!canEnterGame}
-                  className={`flex-1 px-3 py-2 rounded-lg font-medium text-xs transition-all duration-200 flex items-center justify-center gap-1 ${
+                  className={`flex-1 px-3 py-2 rounded-lg font-medium text-sm transition-all duration-200 flex items-center justify-center gap-1 ${
                     canEnterGame
                       ? 'bg-gradient-to-r from-green-600 to-blue-600 text-white hover:from-green-700 hover:to-blue-700 border border-green-500 hover:border-green-400 shadow-lg hover:shadow-green-500/25'
                       : 'bg-white/10 text-white/50 cursor-not-allowed border border-white/20'
