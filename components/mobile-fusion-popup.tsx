@@ -33,7 +33,7 @@ export function MobileFusionPopup({
   const compatibleMonsters = useMemo(() => 
     collection.filter(card => 
       card.name === targetCard.name &&
-      card.type === targetCard.type &&
+      // card.type === targetCard.type &&
       card.id !== targetCard.id
     ),
     [collection, targetCard]
@@ -379,7 +379,7 @@ export function MobileFusionPopup({
                       )}
                       
                       {/* Fusion Points */}
-                      <div className="absolute top-0.5 left-0.5 bg-blue-500/80 text-white rounded font-bold z-10" style={{fontSize: '8px', padding: '1px 3px'}}>
+                      <div className="absolute top-0.5 right-0.5 bg-blue-500/80 text-white rounded font-bold z-10" style={{fontSize: '8px', padding: '1px 3px'}}>
                         +1
                       </div>
                       

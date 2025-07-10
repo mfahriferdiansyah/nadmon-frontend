@@ -34,7 +34,7 @@ export function FusionPopup({
   const compatibleMonsters = useMemo(() => 
     collection.filter(card => 
       card.name === targetCard.name && // Same nadmonType (brindle, cervus, etc.)
-      card.type === targetCard.type && // Same element (Fire, Water, etc.)
+      // card.type === targetCard.type && // Same element (Fire, Water, etc.)
       card.id !== targetCard.id
     ),
     [collection, targetCard]
@@ -374,7 +374,7 @@ export function FusionPopup({
                           )}
                           
                           {/* Fusion points indicator - each sacrifice = +1 point */}
-                          <div className="absolute top-1 left-1 bg-blue-500/80 text-white text-xs px-1 py-0.5 rounded font-bold z-10">
+                          <div className="absolute top-1 right-1 bg-blue-500/80 text-white text-xs px-1 py-0.5 rounded font-bold z-10">
                             +1
                           </div>
                           

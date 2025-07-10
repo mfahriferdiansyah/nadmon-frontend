@@ -54,7 +54,7 @@ export function useNadmonFusion() {
       // Validate that all cards have same element AND same nadmonType (matching contract logic)
       const allCardsValid = tokenIds.every(id => {
         const card = [targetCard, ...sacrificeCards].find(c => c.id === id)
-        return card?.name === targetCard.name && card?.type === targetCard.type
+        return card?.name === targetCard.name // && card?.type === targetCard.type
       })
 
       if (!allCardsValid) {
